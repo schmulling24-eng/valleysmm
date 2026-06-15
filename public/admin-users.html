@@ -1,0 +1,123 @@
+<!DOCTYPE html><html lang="en"><head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Manage Users – Valley SMM Admin</title>
+<link rel="stylesheet" href="/styles.css">
+</head><body>
+<div class="dash-layout">
+  <aside class="dash-sidebar" id="sidebar">
+    <div class="sidebar-logo"><a href="/dashboard.html">Valley<span>SMM</span></a></div>
+    <nav class="sidebar-nav">
+      <div class="nav-section">Admin</div>
+      <a href="/admin.html">⚙️ Overview</a>
+      <a href="/admin-users.html" class="active">👥 Users</a>
+      <a href="/admin-orders.html">📋 All Orders</a>
+      <a href="/admin-services.html">🛒 Services</a>
+      <div class="nav-section">Panel</div>
+      <a href="/dashboard.html">🏠 User View</a>
+    </nav>
+    <div class="sidebar-balance"><div class="sb-label">Admin</div><div class="sb-amt" style="font-size:1rem" id="adminName">–</div></div>
+  </aside>
+  <main class="dash-main">
+    <header class="dash-topbar">
+      <div style="display:flex;align-items:center;gap:1rem">
+        <div class="hamburger" onclick="document.getElementById('sidebar').classList.toggle('open')"><span></span><span></span><span></span></div>
+        <span style="color:var(--muted);font-size:.9rem">👥 Manage Users</span>
+      </div>
+      <div class="topbar-user">
+        <div class="topbar-avatar" id="avBtn">A</div>
+        <div class="user-dropdown" id="uDrop">
+          <a href="#" onclick="clearAuth();location.href='/index.html'">🚪 Logout</a>
+        </div>
+      </div>
+    </header>
+    <div class="dash-content">
+      <div class="page-header"><h1>Manage Users</h1><p>View, search, credit and manage all registered users.</p></div>
+      <div class="search-bar mb-3">
+        <input type="text" class="form-control" id="searchInput" placeholder="🔍 Search by name or email..." oninput="debounceSearch()">
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Name</th><th>Email</th><th>Phone</th><th>Balance</th><th>Orders</th><th>Spent</th><th>Joined</th><th>Status</th><th>Actions</th></tr></thead>
+          <tbody id="usersBody"><tr><td colspan="9" style="text-align:center;padding:2rem;color:var(--muted)">Loading...</td></tr></tbody>
+        </table>
+      </div>
+      <div class="pagination" id="pagination"></div>
+    </div>
+  </main>
+</div>
+<!-- Credit Modal -->
+<div class="modal-overlay" id="creditModal" style="display:none">
+  <div class="modal">
+    <button class="modal-close" onclick="document.getElementById('creditModal').style.display='none'">✕</button>
+    <h3>💸 Adjust Balance</h3>
+    <p style="color:var(--muted);font-size:.85rem;margin-bottom:1rem">User: <strong id="creditUserName" style="color:var(--white)">–</strong></p>
+    <div class="form-group"><label class="form-label">Amount (positive = credit, negative = debit)</label><input type="number" class="form-control" id="creditAmount" placeholder="e.g. 500 or -100"></div>
+    <div class="form-group"><label class="form-label">Reason</label><input class="form-control" id="creditDesc" placeholder="Manual adjustment / Bonus / Correction"></div>
+    <div style="display:flex;gap:.7rem">
+      <button class="btn btn-primary" onclick="applyCredit()">Apply</button>
+      <button class="btn btn-outline" onclick="document.getElementById('creditModal').style.display='none'">Cancel</button>
+    </div>
+  </div>
+</div>
+<script src="/shared.js"></script>
+<script>
+const user = requireAuth(true); if(!user) throw 0;
+document.getElementById('avBtn').textContent=user.name[0];
+document.getElementById('adminName').textContent=user.name;
+document.getElementById('avBtn').onclick=()=>document.getElementById('uDrop').classList.toggle('show');
+document.addEventListener('click',e=>{if(!e.target.closest('.topbar-user'))document.getElementById('uDrop').classList.remove('show');});
+
+let searchTimer=null, currentUserId=null;
+function debounceSearch(){clearTimeout(searchTimer);searchTimer=setTimeout(()=>loadUsers(1),400);}
+
+async function loadUsers(page=1){
+  const search=document.getElementById('searchInput').value;
+  const tbody=document.getElementById('usersBody');
+  tbody.innerHTML='<tr><td colspan="9" style="text-align:center;padding:2rem;color:var(--muted)">Loading...</td></tr>';
+  try{
+    const {users,total,pages}=await apiFetch(`/admin/users?page=${page}&limit=25${search?'&search='+encodeURIComponent(search):''}`);
+    if(!users.length){tbody.innerHTML='<tr><td colspan="9"><div class="empty-state"><span class="es-icon">👤</span><p>No users found</p></div></td></tr>';return;}
+    tbody.innerHTML=users.map(u=>`
+      <tr>
+        <td style="color:var(--white);font-weight:500">${u.name}</td>
+        <td style="font-size:.82rem;color:var(--muted)">${u.email}</td>
+        <td style="font-size:.82rem;color:var(--muted)">${u.phone||'–'}</td>
+        <td style="color:var(--green);font-weight:600">${fmtKES(u.balance)}</td>
+        <td>${u.totalOrders}</td>
+        <td>${fmtKES(u.totalSpent)}</td>
+        <td style="font-size:.78rem;color:var(--muted)">${fmtDate(u.createdAt)}</td>
+        <td>${u.isActive?'<span class="badge badge-green">Active</span>':'<span class="badge badge-red">Suspended</span>'}</td>
+        <td>
+          <button class="btn btn-outline btn-sm" onclick="openCredit('${u._id}','${u.name}')">💸 Credit</button>
+          <button class="btn btn-sm ${u.isActive?'btn-danger':'btn-outline'}" onclick="toggleUser('${u._id}',this)">${u.isActive?'Suspend':'Activate'}</button>
+        </td>
+      </tr>`).join('');
+    const pg=document.getElementById('pagination'); pg.innerHTML='';
+    for(let i=1;i<=pages;i++){const b=document.createElement('button');b.className='page-btn'+(i===page?' active':'');b.textContent=i;b.onclick=()=>loadUsers(i);pg.appendChild(b);}
+  }catch(e){tbody.innerHTML=`<tr><td colspan="9" style="color:var(--red);text-align:center;padding:2rem">${e.message}</td></tr>`;}
+}
+
+function openCredit(id,name){currentUserId=id;document.getElementById('creditUserName').textContent=name;document.getElementById('creditAmount').value='';document.getElementById('creditDesc').value='';document.getElementById('creditModal').style.display='flex';}
+
+async function applyCredit(){
+  const amount=parseFloat(document.getElementById('creditAmount').value);
+  const description=document.getElementById('creditDesc').value||'Admin adjustment';
+  if(!amount){toast('Enter amount','error');return;}
+  try{
+    await apiFetch('/wallet/admin/adjust',{method:'POST',body:JSON.stringify({userId:currentUserId,amount,description})});
+    toast('✅ Balance updated');
+    document.getElementById('creditModal').style.display='none';
+    loadUsers();
+  }catch(e){toast(e.message,'error');}
+}
+
+async function toggleUser(id,btn){
+  try{
+    const r=await apiFetch('/admin/users/'+id+'/toggle',{method:'PUT'});
+    toast(r.message);
+    loadUsers();
+  }catch(e){toast(e.message,'error');}
+}
+loadUsers();
+</script>
+</body></html>

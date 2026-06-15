@@ -1,0 +1,202 @@
+<!DOCTYPE html><html lang="en"><head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Manage Services – Valley SMM Admin</title>
+<link rel="stylesheet" href="/styles.css">
+</head><body>
+<div class="dash-layout">
+  <aside class="dash-sidebar" id="sidebar">
+    <div class="sidebar-logo"><a href="/dashboard.html">Valley<span>SMM</span></a></div>
+    <nav class="sidebar-nav">
+      <div class="nav-section">Admin</div>
+      <a href="/admin.html">⚙️ Overview</a>
+      <a href="/admin-users.html">👥 Users</a>
+      <a href="/admin-orders.html">📋 All Orders</a>
+      <a href="/admin-services.html" class="active">🛒 Services</a>
+      <div class="nav-section">Panel</div>
+      <a href="/dashboard.html">🏠 User View</a>
+    </nav>
+    <div class="sidebar-balance"><div class="sb-label">Admin</div><div class="sb-amt" style="font-size:1rem" id="adminName">–</div></div>
+  </aside>
+  <main class="dash-main">
+    <header class="dash-topbar">
+      <div style="display:flex;align-items:center;gap:1rem">
+        <div class="hamburger" onclick="document.getElementById('sidebar').classList.toggle('open')"><span></span><span></span><span></span></div>
+        <span style="color:var(--muted);font-size:.9rem">🛒 Manage Services</span>
+      </div>
+      <div class="topbar-user">
+        <div class="topbar-avatar" id="avBtn">A</div>
+        <div class="user-dropdown" id="uDrop"><a href="#" onclick="clearAuth();location.href='/index.html'">🚪 Logout</a></div>
+      </div>
+    </header>
+    <div class="dash-content">
+      <div class="page-header flex justify-between items-center flex-wrap" style="gap:1rem">
+        <div><h1>Manage Services</h1><p>Add, edit and toggle all SMM services on your panel.</p></div>
+        <button class="btn btn-primary" onclick="openAdd()">+ Add Service</button>
+      </div>
+      <div class="search-bar mb-3">
+        <input type="text" class="form-control" id="searchInput" placeholder="🔍 Search services..." oninput="debounceSearch()">
+        <select class="form-control" id="platformFilter" onchange="renderFiltered()" style="max-width:160px">
+          <option value="">All Platforms</option>
+        </select>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>ID</th><th>Name</th><th>Platform</th><th>Category</th><th>Rate/1K</th><th>Min</th><th>Max</th><th>Refill</th><th>Status</th><th>Actions</th></tr></thead>
+          <tbody id="svcBody"><tr><td colspan="10" style="text-align:center;padding:2rem;color:var(--muted)">Loading...</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+</div>
+<!-- Add/Edit Service Modal -->
+<div class="modal-overlay" id="svcModal" style="display:none">
+  <div class="modal" style="max-width:560px">
+    <button class="modal-close" onclick="closeModal()">✕</button>
+    <h3 id="modalTitle">➕ Add Service</h3>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Service ID *</label><input class="form-control" id="fServiceId" placeholder="e.g. IG-FOLLOW-001"></div>
+      <div class="form-group"><label class="form-label">Platform *</label>
+        <select class="form-control" id="fPlatform">
+          <option>Instagram</option><option>TikTok</option><option>YouTube</option>
+          <option>Facebook</option><option>Twitter</option><option>Telegram</option>
+          <option>LinkedIn</option><option>SoundCloud</option><option>Pinterest</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-group"><label class="form-label">Service Name *</label><input class="form-control" id="fName" placeholder="e.g. Instagram Followers – HQ"></div>
+    <div class="form-group"><label class="form-label">Category *</label><input class="form-control" id="fCategory" placeholder="e.g. Followers, Likes, Views, Watch Hours"></div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Rate (KES per 1,000) *</label><input type="number" class="form-control" id="fRate" placeholder="50" step="0.01"></div>
+      <div class="form-group"><label class="form-label">Upstream API ID</label><input class="form-control" id="fUpstreamId" placeholder="optional"></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Min Order *</label><input type="number" class="form-control" id="fMin" placeholder="100"></div>
+      <div class="form-group"><label class="form-label">Max Order *</label><input type="number" class="form-control" id="fMax" placeholder="100000"></div>
+    </div>
+    <div class="form-group"><label class="form-label">Description</label><textarea class="form-control" id="fDesc" rows="2" placeholder="Short description shown to users..."></textarea></div>
+    <div style="display:flex;gap:1.5rem;margin-bottom:1rem">
+      <label style="display:flex;align-items:center;gap:.5rem;font-size:.85rem;cursor:pointer"><input type="checkbox" id="fRefill"> Refill guarantee</label>
+      <label style="display:flex;align-items:center;gap:.5rem;font-size:.85rem;cursor:pointer"><input type="checkbox" id="fCancel"> Cancel allowed</label>
+      <label style="display:flex;align-items:center;gap:.5rem;font-size:.85rem;cursor:pointer"><input type="checkbox" id="fActive" checked> Active</label>
+    </div>
+    <div style="display:flex;gap:.7rem">
+      <button class="btn btn-primary" id="saveBtn" onclick="saveService()">Save Service</button>
+      <button class="btn btn-outline" onclick="closeModal()">Cancel</button>
+    </div>
+  </div>
+</div>
+<script src="/shared.js"></script>
+<script>
+const user = requireAuth(true); if(!user) throw 0;
+document.getElementById('avBtn').textContent=user.name[0];
+document.getElementById('adminName').textContent=user.name;
+document.getElementById('avBtn').onclick=()=>document.getElementById('uDrop').classList.toggle('show');
+document.addEventListener('click',e=>{if(!e.target.closest('.topbar-user'))document.getElementById('uDrop').classList.remove('show');});
+
+let allServices=[], editingId=null, searchTimer=null;
+function debounceSearch(){clearTimeout(searchTimer);searchTimer=setTimeout(renderFiltered,300);}
+
+async function loadServices(){
+  try{
+    allServices=await apiFetch('/services');
+    const platforms=[...new Set(allServices.map(s=>s.platform))];
+    const pf=document.getElementById('platformFilter');
+    pf.innerHTML='<option value="">All Platforms</option>';
+    platforms.forEach(p=>{const o=document.createElement('option');o.value=p;o.textContent=p;pf.appendChild(o);});
+    renderFiltered();
+  }catch(e){document.getElementById('svcBody').innerHTML=`<tr><td colspan="10" style="color:var(--red);text-align:center;padding:2rem">${e.message}</td></tr>`;}
+}
+
+function renderFiltered(){
+  const q=document.getElementById('searchInput').value.toLowerCase();
+  const pf=document.getElementById('platformFilter').value;
+  const filtered=allServices.filter(s=>{
+    if(pf&&s.platform!==pf)return false;
+    if(q&&!s.name.toLowerCase().includes(q)&&!s.serviceId.toLowerCase().includes(q))return false;
+    return true;
+  });
+  const tbody=document.getElementById('svcBody');
+  if(!filtered.length){tbody.innerHTML='<tr><td colspan="10"><div class="empty-state"><span class="es-icon">🔍</span><p>No services found</p></div></td></tr>';return;}
+  tbody.innerHTML=filtered.map(s=>`
+    <tr>
+      <td style="font-family:monospace;font-size:.75rem;color:var(--muted)">${s.serviceId}</td>
+      <td style="font-size:.85rem;color:var(--white);max-width:200px"><div style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${s.name}</div></td>
+      <td><span class="badge badge-blue" style="font-size:.7rem">${s.platform}</span></td>
+      <td style="font-size:.78rem;color:var(--muted)">${s.category}</td>
+      <td style="color:var(--green);font-weight:700">KES ${s.rate}</td>
+      <td style="font-size:.82rem">${s.minOrder.toLocaleString()}</td>
+      <td style="font-size:.82rem">${s.maxOrder.toLocaleString()}</td>
+      <td>${s.refill?'<span class="badge badge-green" style="font-size:.68rem">✓</span>':'<span style="color:var(--muted);font-size:.8rem">–</span>'}</td>
+      <td>${s.isActive?'<span class="badge badge-green">Active</span>':'<span class="badge badge-red">Off</span>'}</td>
+      <td style="white-space:nowrap">
+        <button class="btn btn-outline btn-sm" onclick='openEdit(${JSON.stringify(s)})'>✏️</button>
+        <button class="btn btn-sm ${s.isActive?'btn-danger':'btn-outline'}" onclick="toggleSvc('${s._id}',${s.isActive})">${s.isActive?'Off':'On'}</button>
+      </td>
+    </tr>`).join('');
+}
+
+function openAdd(){
+  editingId=null;
+  document.getElementById('modalTitle').textContent='➕ Add Service';
+  ['fServiceId','fName','fCategory','fRate','fMin','fMax','fDesc','fUpstreamId'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('fPlatform').value='Instagram';
+  document.getElementById('fRefill').checked=false;
+  document.getElementById('fCancel').checked=false;
+  document.getElementById('fActive').checked=true;
+  document.getElementById('svcModal').style.display='flex';
+}
+
+function openEdit(s){
+  editingId=s._id;
+  document.getElementById('modalTitle').textContent='✏️ Edit Service';
+  document.getElementById('fServiceId').value=s.serviceId||'';
+  document.getElementById('fName').value=s.name||'';
+  document.getElementById('fPlatform').value=s.platform||'Instagram';
+  document.getElementById('fCategory').value=s.category||'';
+  document.getElementById('fRate').value=s.rate||'';
+  document.getElementById('fMin').value=s.minOrder||'';
+  document.getElementById('fMax').value=s.maxOrder||'';
+  document.getElementById('fDesc').value=s.description||'';
+  document.getElementById('fUpstreamId').value=s.upstreamId||'';
+  document.getElementById('fRefill').checked=!!s.refill;
+  document.getElementById('fCancel').checked=!!s.cancel;
+  document.getElementById('fActive').checked=s.isActive!==false;
+  document.getElementById('svcModal').style.display='flex';
+}
+
+function closeModal(){document.getElementById('svcModal').style.display='none';}
+
+async function saveService(){
+  const payload={
+    serviceId:document.getElementById('fServiceId').value.trim(),
+    name:document.getElementById('fName').value.trim(),
+    platform:document.getElementById('fPlatform').value,
+    category:document.getElementById('fCategory').value.trim(),
+    rate:parseFloat(document.getElementById('fRate').value),
+    minOrder:parseInt(document.getElementById('fMin').value),
+    maxOrder:parseInt(document.getElementById('fMax').value),
+    description:document.getElementById('fDesc').value.trim(),
+    upstreamId:document.getElementById('fUpstreamId').value.trim(),
+    refill:document.getElementById('fRefill').checked,
+    cancel:document.getElementById('fCancel').checked,
+    isActive:document.getElementById('fActive').checked,
+  };
+  if(!payload.serviceId||!payload.name||!payload.category||!payload.rate||!payload.minOrder||!payload.maxOrder){toast('Fill all required fields','error');return;}
+  const btn=document.getElementById('saveBtn');btn.disabled=true;btn.textContent='Saving...';
+  try{
+    if(editingId) await apiFetch('/services/'+editingId,{method:'PUT',body:JSON.stringify(payload)});
+    else await apiFetch('/services',{method:'POST',body:JSON.stringify(payload)});
+    toast('✅ Service saved');closeModal();loadServices();
+  }catch(e){toast(e.message,'error');}
+  btn.disabled=false;btn.textContent='Save Service';
+}
+
+async function toggleSvc(id,current){
+  try{
+    await apiFetch('/services/'+id,{method:'PUT',body:JSON.stringify({isActive:!current})});
+    toast('Service '+(current?'deactivated':'activated'));loadServices();
+  }catch(e){toast(e.message,'error');}
+}
+loadServices();
+</script>
+</body></html>

@@ -1,0 +1,227 @@
+<!DOCTYPE html><html lang="en"><head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Dashboard – Valley SMM</title>
+<link rel="stylesheet" href="/styles.css">
+</head><body>
+<div class="dash-layout">
+  <aside class="dash-sidebar" id="sidebar">
+    <div class="sidebar-logo"><a href="/dashboard.html">Valley<span>SMM</span></a></div>
+    <nav class="sidebar-nav">
+      <div class="nav-section">Main</div>
+      <a href="/dashboard.html" class="active">🏠 Dashboard</a>
+      <a href="/services.html">🛒 New Order</a>
+      <a href="/orders.html">📋 My Orders</a>
+      <div class="nav-section">Account</div>
+      <a href="/wallet.html">💰 Wallet & Funds</a>
+      <a href="/profile.html">👤 Profile</a>
+      <a href="/api-docs.html">🔌 API Access</a>
+      <div class="nav-section admin-link" style="display:none">Admin</div>
+      <a href="/admin.html" class="admin-link" style="display:none">⚙️ Admin Panel</a>
+    </nav>
+    <div class="sidebar-balance">
+      <div class="sb-label">Wallet Balance</div>
+      <div class="sb-amt" id="sideBalance">KES 0.00</div>
+      <a href="/wallet.html" class="sb-btn">+ Add Funds</a>
+    </div>
+  </aside>
+  <main class="dash-main">
+    <header class="dash-topbar">
+      <div style="display:flex;align-items:center;gap:1rem">
+        <div class="hamburger" onclick="toggleSidebar()"><span></span><span></span><span></span></div>
+        <span style="font-size:.9rem;color:var(--muted)">Good <span id="greeting"></span>! 👋</span>
+      </div>
+      <div class="topbar-user">
+        <div style="font-size:.82rem;color:var(--muted)">Balance: <strong class="text-green" id="topBalance">–</strong></div>
+        <div class="topbar-avatar" id="avatarBtn">U</div>
+        <div class="user-dropdown" id="userDrop">
+          <div class="ud-name" id="udName">–</div>
+          <div class="ud-email" id="udEmail">–</div>
+          <a href="/wallet.html">💰 Add Funds</a>
+          <a href="/profile.html">👤 Profile</a>
+          <a href="#" onclick="doLogout()">🚪 Logout</a>
+        </div>
+      </div>
+    </header>
+    <div class="dash-content">
+      <div class="page-header">
+        <h1 id="welcomeMsg">Welcome back!</h1>
+        <p>Here's an overview of your account activity.</p>
+      </div>
+
+      <!-- Stats -->
+      <div class="grid-4 mb-3">
+        <div class="stat-card">
+          <div class="stat-icon green">💰</div>
+          <div><div class="stat-label">Wallet Balance</div><div class="stat-value text-green" id="statBalance">–</div></div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon blue">📋</div>
+          <div><div class="stat-label">Total Orders</div><div class="stat-value" id="statOrders">–</div></div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon amber">💸</div>
+          <div><div class="stat-label">Total Spent</div><div class="stat-value" id="statSpent">–</div></div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon red">⚡</div>
+          <div><div class="stat-label">Active Orders</div><div class="stat-value" id="statActive">–</div></div>
+        </div>
+      </div>
+
+      <div class="grid-2">
+        <!-- Quick Order -->
+        <div class="card">
+          <h3 class="font-syne mb-2" style="color:var(--white);font-size:1rem">⚡ Quick Order</h3>
+          <div class="form-group">
+            <label class="form-label">Select Service</label>
+            <select class="form-control" id="quickService" onchange="updateQuickCalc()">
+              <option value="">Loading services...</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Link / URL</label>
+            <input type="url" class="form-control" id="quickLink" placeholder="https://instagram.com/yourprofile">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Quantity</label>
+            <input type="number" class="form-control" id="quickQty" placeholder="1000" oninput="updateQuickCalc()">
+            <div class="form-hint" id="quickHint">Select a service first</div>
+          </div>
+          <div class="alert alert-info" id="quickCalc" style="display:none">
+            Cost: <strong id="quickCost">–</strong>
+          </div>
+          <button class="btn btn-primary btn-full" onclick="placeQuickOrder()">🚀 Place Order</button>
+        </div>
+
+        <!-- Recent Orders -->
+        <div class="card">
+          <div class="flex justify-between items-center mb-2">
+            <h3 class="font-syne" style="color:var(--white);font-size:1rem">📋 Recent Orders</h3>
+            <a href="/orders.html" class="btn btn-outline btn-sm">View All</a>
+          </div>
+          <div id="recentOrders"><div style="color:var(--muted);font-size:.85rem">Loading...</div></div>
+        </div>
+      </div>
+
+      <!-- M-Pesa Banner -->
+      <div class="card mt-3" style="background:linear-gradient(135deg,#0a1a0f,#0e2315);border-color:rgba(0,200,83,.3)">
+        <div class="flex justify-between items-center flex-wrap" style="gap:1rem">
+          <div>
+            <div style="font-size:.72rem;color:var(--green);font-weight:600;letter-spacing:.1em;text-transform:uppercase;margin-bottom:.3rem">Pay with M-Pesa</div>
+            <h3 class="font-syne" style="color:var(--white);font-size:1.1rem">Top up your wallet instantly</h3>
+            <p style="color:var(--muted);font-size:.85rem;margin-top:.3rem">Paybill: <strong style="color:var(--white)">522522</strong> · Account: <strong style="color:var(--white)">1289011060</strong> · Min KES 50</p>
+          </div>
+          <a href="/wallet.html" class="btn btn-primary">💳 Add Funds Now</a>
+        </div>
+      </div>
+
+      <!-- Platforms -->
+      <div class="card mt-3">
+        <h3 class="font-syne mb-2" style="color:var(--white);font-size:1rem">🎯 Browse by Platform</h3>
+        <div style="display:flex;flex-wrap:wrap;gap:.6rem" id="platformList"></div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script src="/shared.js"></script>
+<script>
+const user = requireAuth();
+if(!user) throw new Error('not authed');
+
+// Show admin links
+if(user.role==='admin') document.querySelectorAll('.admin-link').forEach(el=>el.style.display='');
+
+// Greeting
+const hr = new Date().getHours();
+document.getElementById('greeting').textContent = hr<12?'morning':hr<17?'afternoon':'evening';
+document.getElementById('welcomeMsg').textContent = 'Welcome back, ' + user.name + '!';
+document.getElementById('avatarBtn').textContent = user.name[0].toUpperCase();
+document.getElementById('udName').textContent = user.name;
+document.getElementById('udEmail').textContent = user.email;
+
+// Avatar dropdown
+document.getElementById('avatarBtn').onclick = () => document.getElementById('userDrop').classList.toggle('show');
+document.addEventListener('click', e => { if(!e.target.closest('.topbar-user')) document.getElementById('userDrop').classList.remove('show'); });
+
+function doLogout(){ clearAuth(); window.location.href='/index.html'; }
+function toggleSidebar(){ document.getElementById('sidebar').classList.toggle('open'); }
+
+async function loadDash() {
+  try {
+    const me = await apiFetch('/auth/me');
+    // update stored user
+    localStorage.setItem('vsmm_user', JSON.stringify({...user,...me}));
+    document.getElementById('sideBalance').textContent = fmtKES(me.balance);
+    document.getElementById('topBalance').textContent = fmtKES(me.balance);
+    document.getElementById('statBalance').textContent = fmtKES(me.balance);
+    document.getElementById('statOrders').textContent = me.totalOrders || 0;
+    document.getElementById('statSpent').textContent = fmtKES(me.totalSpent);
+  } catch(e){}
+
+  try {
+    const {orders} = await apiFetch('/orders/my?limit=5');
+    const active = orders.filter(o=>['Pending','Processing','In Progress'].includes(o.status)).length;
+    document.getElementById('statActive').textContent = active;
+    if(!orders.length){
+      document.getElementById('recentOrders').innerHTML='<div class="empty-state" style="padding:2rem"><span class="es-icon">📭</span><p>No orders yet</p><a href="/services.html" class="btn btn-primary btn-sm">Place First Order</a></div>';
+    } else {
+      document.getElementById('recentOrders').innerHTML = orders.map(o=>`
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:.6rem 0;border-bottom:1px solid var(--border)">
+          <div>
+            <div style="font-size:.85rem;color:var(--white)">${o.service?.name||'Service'}</div>
+            <div style="font-size:.75rem;color:var(--muted)">${o.orderId} · ${fmtKES(o.charge)}</div>
+          </div>
+          ${statusBadge(o.status)}
+        </div>`).join('');
+    }
+  } catch(e){}
+
+  try {
+    const svcs = await apiFetch('/services');
+    const sel = document.getElementById('quickService');
+    sel.innerHTML = '<option value="">-- Select service --</option>';
+    const platforms = [...new Set(svcs.map(s=>s.platform))];
+    const groups = {};
+    svcs.forEach(s=>{ if(!groups[s.category]) groups[s.category]=[]; groups[s.category].push(s); });
+    Object.entries(groups).forEach(([cat,items])=>{
+      const og = document.createElement('optgroup'); og.label=cat;
+      items.forEach(s=>{ const o=document.createElement('option'); o.value=s._id; o.dataset.rate=s.rate; o.dataset.min=s.minOrder; o.dataset.max=s.maxOrder; o.textContent=`${s.name} – KES ${s.rate}/1K`; og.appendChild(o); });
+      sel.appendChild(og);
+    });
+    // Platform chips
+    document.getElementById('platformList').innerHTML = platforms.map(p=>`
+      <a href="/services.html?platform=${p}" style="display:flex;align-items:center;gap:.4rem;background:var(--dark2);border:1px solid var(--border);border-radius:8px;padding:.45rem 1rem;font-size:.82rem;color:var(--text);transition:.2s" onmouseover="this.style.borderColor='var(--green)'" onmouseout="this.style.borderColor='var(--border)'">${platformIcon(p)} ${p}</a>`).join('');
+  } catch(e){}
+}
+
+function platformIcon(p){const m={Instagram:'📸',TikTok:'🎵',YouTube:'▶️',Facebook:'👍',Twitter:'🐦',Telegram:'✈️',SoundCloud:'🎵',LinkedIn:'💼'};return m[p]||'📱';}
+
+function updateQuickCalc(){
+  const sel = document.getElementById('quickService');
+  const opt = sel.options[sel.selectedIndex];
+  const qty = parseInt(document.getElementById('quickQty').value)||0;
+  if(!opt||!opt.dataset.rate){document.getElementById('quickHint').textContent='Select a service first';document.getElementById('quickCalc').style.display='none';return;}
+  document.getElementById('quickHint').textContent=`Min: ${opt.dataset.min} · Max: ${opt.dataset.max}`;
+  if(qty>0){
+    const cost=((qty/1000)*parseFloat(opt.dataset.rate)).toFixed(2);
+    document.getElementById('quickCost').textContent=`KES ${cost}`;
+    document.getElementById('quickCalc').style.display='block';
+  }
+}
+
+async function placeQuickOrder(){
+  const serviceId=document.getElementById('quickService').value;
+  const link=document.getElementById('quickLink').value;
+  const quantity=parseInt(document.getElementById('quickQty').value);
+  if(!serviceId||!link||!quantity){toast('Fill all fields','error');return;}
+  try{
+    const data=await apiFetch('/orders',{method:'POST',body:JSON.stringify({serviceId,link,quantity})});
+    toast('Order placed! #'+data.order.orderId);
+    setTimeout(loadDash,500);
+  }catch(e){toast(e.message,'error');}
+}
+
+loadDash();
+</script>
+</body></html>

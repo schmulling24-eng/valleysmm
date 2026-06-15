@@ -1,0 +1,120 @@
+<!DOCTYPE html><html lang="en"><head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>All Orders – Valley SMM Admin</title>
+<link rel="stylesheet" href="/styles.css">
+</head><body>
+<div class="dash-layout">
+  <aside class="dash-sidebar" id="sidebar">
+    <div class="sidebar-logo"><a href="/dashboard.html">Valley<span>SMM</span></a></div>
+    <nav class="sidebar-nav">
+      <div class="nav-section">Admin</div>
+      <a href="/admin.html">⚙️ Overview</a>
+      <a href="/admin-users.html">👥 Users</a>
+      <a href="/admin-orders.html" class="active">📋 All Orders</a>
+      <a href="/admin-services.html">🛒 Services</a>
+      <div class="nav-section">Panel</div>
+      <a href="/dashboard.html">🏠 User View</a>
+    </nav>
+    <div class="sidebar-balance"><div class="sb-label">Admin</div><div class="sb-amt" style="font-size:1rem" id="adminName">–</div></div>
+  </aside>
+  <main class="dash-main">
+    <header class="dash-topbar">
+      <div style="display:flex;align-items:center;gap:1rem">
+        <div class="hamburger" onclick="document.getElementById('sidebar').classList.toggle('open')"><span></span><span></span><span></span></div>
+        <span style="color:var(--muted);font-size:.9rem">📋 All Orders</span>
+      </div>
+      <div class="topbar-user">
+        <div class="topbar-avatar" id="avBtn">A</div>
+        <div class="user-dropdown" id="uDrop"><a href="#" onclick="clearAuth();location.href='/index.html'">🚪 Logout</a></div>
+      </div>
+    </header>
+    <div class="dash-content">
+      <div class="page-header"><h1>All Orders</h1><p>View and manage every order placed on the panel.</p></div>
+      <div class="search-bar mb-3">
+        <select class="form-control" id="statusFilter" onchange="loadOrders(1)" style="max-width:180px">
+          <option value="">All Statuses</option>
+          <option>Pending</option><option>Processing</option><option>In Progress</option>
+          <option>Completed</option><option>Partial</option><option>Cancelled</option>
+        </select>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Order ID</th><th>User</th><th>Service</th><th>Link</th><th>Qty</th><th>Charge</th><th>Status</th><th>Date</th><th>Action</th></tr></thead>
+          <tbody id="ordersBody"><tr><td colspan="9" style="text-align:center;padding:2rem;color:var(--muted)">Loading...</td></tr></tbody>
+        </table>
+      </div>
+      <div class="pagination" id="pagination"></div>
+    </div>
+  </main>
+</div>
+<!-- Update Status Modal -->
+<div class="modal-overlay" id="statusModal" style="display:none">
+  <div class="modal">
+    <button class="modal-close" onclick="document.getElementById('statusModal').style.display='none'">✕</button>
+    <h3>✏️ Update Order Status</h3>
+    <p style="color:var(--muted);font-size:.85rem;margin-bottom:1rem">Order: <strong id="editOrderId" style="color:var(--white)">–</strong></p>
+    <div class="form-group">
+      <label class="form-label">Status</label>
+      <select class="form-control" id="editStatus">
+        <option>Pending</option><option>Processing</option><option>In Progress</option>
+        <option>Completed</option><option>Partial</option><option>Cancelled</option><option>Refunded</option>
+      </select>
+    </div>
+    <div class="form-group"><label class="form-label">Notes (optional)</label><input class="form-control" id="editNotes" placeholder="Internal note..."></div>
+    <div style="display:flex;gap:.7rem">
+      <button class="btn btn-primary" onclick="saveStatus()">Save</button>
+      <button class="btn btn-outline" onclick="document.getElementById('statusModal').style.display='none'">Cancel</button>
+    </div>
+  </div>
+</div>
+<script src="/shared.js"></script>
+<script>
+const user = requireAuth(true); if(!user) throw 0;
+document.getElementById('avBtn').textContent=user.name[0];
+document.getElementById('adminName').textContent=user.name;
+document.getElementById('avBtn').onclick=()=>document.getElementById('uDrop').classList.toggle('show');
+document.addEventListener('click',e=>{if(!e.target.closest('.topbar-user'))document.getElementById('uDrop').classList.remove('show');});
+let editingId=null;
+
+async function loadOrders(page=1){
+  const status=document.getElementById('statusFilter').value;
+  const tbody=document.getElementById('ordersBody');
+  tbody.innerHTML='<tr><td colspan="9" style="text-align:center;padding:2rem;color:var(--muted)">Loading...</td></tr>';
+  try{
+    const {orders,total,pages}=await apiFetch(`/orders/admin/all?page=${page}&limit=25${status?'&status='+status:''}`);
+    if(!orders.length){tbody.innerHTML='<tr><td colspan="9"><div class="empty-state"><span class="es-icon">📭</span><p>No orders found</p></div></td></tr>';return;}
+    tbody.innerHTML=orders.map(o=>`
+      <tr>
+        <td><span style="font-family:monospace;font-size:.78rem;color:var(--green)">${o.orderId}</span></td>
+        <td><div style="font-size:.82rem;color:var(--white)">${o.user?.name||'–'}</div><div style="font-size:.72rem;color:var(--muted)">${o.user?.email||''}</div></td>
+        <td style="font-size:.82rem;color:var(--text);max-width:150px"><div style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${o.service?.name||'–'}</div><div style="font-size:.72rem;color:var(--muted)">${o.service?.platform||''}</div></td>
+        <td><a href="${o.link}" target="_blank" style="color:var(--blue);font-size:.75rem;max-width:120px;display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${o.link}</a></td>
+        <td>${o.quantity.toLocaleString()}</td>
+        <td style="color:var(--green);font-weight:600">${fmtKES(o.charge)}</td>
+        <td>${statusBadge(o.status)}</td>
+        <td style="font-size:.75rem;color:var(--muted)">${fmtDate(o.createdAt)}</td>
+        <td><button class="btn btn-outline btn-sm" onclick="openEdit('${o._id}','${o.orderId}','${o.status}')">✏️ Edit</button></td>
+      </tr>`).join('');
+    const pg=document.getElementById('pagination');pg.innerHTML='';
+    for(let i=1;i<=pages;i++){const b=document.createElement('button');b.className='page-btn'+(i===page?' active':'');b.textContent=i;b.onclick=()=>loadOrders(i);pg.appendChild(b);}
+  }catch(e){tbody.innerHTML=`<tr><td colspan="9" style="color:var(--red);text-align:center;padding:2rem">${e.message}</td></tr>`;}
+}
+
+function openEdit(id,orderId,status){
+  editingId=id;
+  document.getElementById('editOrderId').textContent=orderId;
+  document.getElementById('editStatus').value=status;
+  document.getElementById('editNotes').value='';
+  document.getElementById('statusModal').style.display='flex';
+}
+async function saveStatus(){
+  try{
+    await apiFetch('/orders/admin/'+editingId,{method:'PUT',body:JSON.stringify({status:document.getElementById('editStatus').value,notes:document.getElementById('editNotes').value})});
+    toast('✅ Order updated');
+    document.getElementById('statusModal').style.display='none';
+    loadOrders();
+  }catch(e){toast(e.message,'error');}
+}
+loadOrders();
+</script>
+</body></html>

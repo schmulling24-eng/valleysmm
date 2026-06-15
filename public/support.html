@@ -1,0 +1,186 @@
+<!DOCTYPE html><html lang="en"><head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Support Tickets – Valley SMM</title>
+<link rel="stylesheet" href="/styles.css">
+</head><body>
+<div class="dash-layout">
+  <aside class="dash-sidebar" id="sidebar">
+    <div class="sidebar-logo"><a href="/dashboard.html">Valley<span>SMM</span></a></div>
+    <nav class="sidebar-nav">
+      <div class="nav-section">Main</div>
+      <a href="/dashboard.html">🏠 Dashboard</a>
+      <a href="/services.html">🛒 New Order</a>
+      <a href="/orders.html">📋 My Orders</a>
+      <div class="nav-section">Account</div>
+      <a href="/wallet.html">💰 Wallet & Funds</a>
+      <a href="/profile.html">👤 Profile</a>
+      <a href="/api-docs.html">🔌 API Access</a>
+      <a href="/support.html" class="active">🎫 Support</a>
+    </nav>
+    <div class="sidebar-balance">
+      <div class="sb-label">Wallet Balance</div>
+      <div class="sb-amt" id="sideBalance">–</div>
+      <a href="/wallet.html" class="sb-btn">+ Add Funds</a>
+    </div>
+  </aside>
+  <main class="dash-main">
+    <header class="dash-topbar">
+      <div style="display:flex;align-items:center;gap:1rem">
+        <div class="hamburger" onclick="document.getElementById('sidebar').classList.toggle('open')"><span></span><span></span><span></span></div>
+        <span style="color:var(--muted);font-size:.9rem">🎫 Support Tickets</span>
+      </div>
+      <div class="topbar-user">
+        <div class="topbar-avatar" id="avBtn">U</div>
+        <div class="user-dropdown" id="uDrop">
+          <div class="ud-name" id="udN">–</div>
+          <a href="/profile.html">👤 Profile</a>
+          <a href="#" onclick="clearAuth();location.href='/index.html'">🚪 Logout</a>
+        </div>
+      </div>
+    </header>
+    <div class="dash-content">
+      <div class="page-header flex justify-between items-center flex-wrap" style="gap:1rem">
+        <div><h1>Support Tickets</h1><p>Open a ticket and our team responds within 2 hours.</p></div>
+        <button class="btn btn-primary" onclick="showNewTicket()">+ New Ticket</button>
+      </div>
+
+      <!-- Quick channels -->
+      <div class="grid-3 mb-3">
+        <a href="https://wa.me/254700000000" target="_blank" class="card" style="display:flex;align-items:center;gap:1rem;text-decoration:none;transition:.2s" onmouseover="this.style.borderColor='var(--green)'" onmouseout="this.style.borderColor='var(--border)'">
+          <div style="font-size:2rem">💬</div>
+          <div><div style="color:var(--white);font-weight:600;font-size:.9rem">WhatsApp</div><div style="color:var(--green);font-size:.78rem">Fastest · &lt;5 min reply</div></div>
+        </a>
+        <a href="https://t.me/valleysmm" target="_blank" class="card" style="display:flex;align-items:center;gap:1rem;text-decoration:none;transition:.2s" onmouseover="this.style.borderColor='var(--green)'" onmouseout="this.style.borderColor='var(--border)'">
+          <div style="font-size:2rem">✈️</div>
+          <div><div style="color:var(--white);font-weight:600;font-size:.9rem">Telegram</div><div style="color:var(--muted);font-size:.78rem">@valleysmm channel</div></div>
+        </a>
+        <a href="mailto:support@valleysmm.co.ke" class="card" style="display:flex;align-items:center;gap:1rem;text-decoration:none;transition:.2s" onmouseover="this.style.borderColor='var(--green)'" onmouseout="this.style.borderColor='var(--border)'">
+          <div style="font-size:2rem">✉️</div>
+          <div><div style="color:var(--white);font-weight:600;font-size:.9rem">Email</div><div style="color:var(--muted);font-size:.78rem">support@valleysmm.co.ke</div></div>
+        </a>
+      </div>
+
+      <!-- New ticket form -->
+      <div class="card mb-3" id="newTicketForm" style="display:none;border-color:rgba(0,200,83,.3)">
+        <h3 class="font-syne mb-2" style="color:var(--white);font-size:1rem">🎫 Open New Ticket</h3>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Subject</label>
+            <select class="form-control" id="tSubject">
+              <option>Order not started</option>
+              <option>Order partially completed</option>
+              <option>M-Pesa not credited</option>
+              <option>Refund request</option>
+              <option>Account issue</option>
+              <option>API / Reseller inquiry</option>
+              <option>Other</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Order ID (if related)</label>
+            <input class="form-control" id="tOrderId" placeholder="ORD-XXXXXXXX (optional)">
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Message *</label>
+          <textarea class="form-control" id="tMessage" rows="4" placeholder="Describe your issue in detail. Include any relevant links, amounts, or transaction codes..."></textarea>
+        </div>
+        <div style="display:flex;gap:.7rem">
+          <button class="btn btn-primary" onclick="submitTicket()">📤 Submit Ticket</button>
+          <button class="btn btn-outline" onclick="document.getElementById('newTicketForm').style.display='none'">Cancel</button>
+        </div>
+      </div>
+
+      <!-- Tickets list -->
+      <div class="card">
+        <h3 class="font-syne mb-2" style="color:var(--white);font-size:1rem">📋 Your Tickets</h3>
+        <div id="ticketsList"></div>
+      </div>
+
+      <!-- FAQ -->
+      <div class="card mt-3">
+        <h3 class="font-syne mb-2" style="color:var(--white);font-size:1rem">❓ Common Issues</h3>
+        <div style="display:flex;flex-direction:column;gap:.5rem">
+          <details style="border-bottom:1px solid var(--border);padding-bottom:.6rem">
+            <summary style="color:var(--text);font-size:.87rem;cursor:pointer;font-weight:500;padding:.4rem 0">My M-Pesa payment didn't credit my wallet</summary>
+            <p style="color:var(--muted);font-size:.82rem;margin-top:.5rem;line-height:1.65">Wait 5 minutes. If still not credited, open a ticket or WhatsApp us with your M-Pesa transaction code (starts with letters, e.g. QHX1234ABC).</p>
+          </details>
+          <details style="border-bottom:1px solid var(--border);padding-bottom:.6rem">
+            <summary style="color:var(--text);font-size:.87rem;cursor:pointer;font-weight:500;padding:.4rem 0">My order is stuck on "Pending" for a long time</summary>
+            <p style="color:var(--muted);font-size:.82rem;margin-top:.5rem;line-height:1.65">Most orders start within 0–30 minutes. If your order has been Pending for more than 2 hours, open a ticket with your Order ID and we'll check it immediately.</p>
+          </details>
+          <details style="border-bottom:1px solid var(--border);padding-bottom:.6rem">
+            <summary style="color:var(--text);font-size:.87rem;cursor:pointer;font-weight:500;padding:.4rem 0">I received fewer followers/likes than ordered</summary>
+            <p style="color:var(--muted);font-size:.82rem;margin-top:.5rem;line-height:1.65">If your order status is "Partial", you'll receive an automatic refund for the undelivered portion. If it says "Completed" but count is wrong, open a ticket within 24 hours.</p>
+          </details>
+          <details style="border-bottom:1px solid var(--border);padding-bottom:.6rem">
+            <summary style="color:var(--text);font-size:.87rem;cursor:pointer;font-weight:500;padding:.4rem 0">How do I cancel an order?</summary>
+            <p style="color:var(--muted);font-size:.82rem;margin-top:.5rem;line-height:1.65">Orders can only be cancelled before they start processing. Open a ticket immediately with your Order ID and we'll try to cancel it. Cancellations are not guaranteed once started.</p>
+          </details>
+          <details style="padding-bottom:.3rem">
+            <summary style="color:var(--text);font-size:.87rem;cursor:pointer;font-weight:500;padding:.4rem 0">How do I become a reseller?</summary>
+            <p style="color:var(--muted);font-size:.82rem;margin-top:.5rem;line-height:1.65">Visit the <a href="/api-docs.html" style="color:var(--green)">API Access page</a> to get your API key and view documentation. For white-label panel setup, contact us on WhatsApp.</p>
+          </details>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+<script src="/shared.js"></script>
+<script>
+const user = requireAuth(); if(!user) throw 0;
+document.getElementById('avBtn').textContent=user.name[0];
+document.getElementById('udN').textContent=user.name;
+document.getElementById('avBtn').onclick=()=>document.getElementById('uDrop').classList.toggle('show');
+document.addEventListener('click',e=>{if(!e.target.closest('.topbar-user'))document.getElementById('uDrop').classList.remove('show');});
+
+// Load balance
+apiFetch('/auth/me').then(me=>{
+  document.getElementById('sideBalance').textContent=fmtKES(me.balance);
+}).catch(()=>{});
+
+// Load tickets from localStorage (client-side demo; in production use a tickets API)
+function loadTickets(){
+  const tickets=JSON.parse(localStorage.getItem('vsmm_tickets_'+user.id)||'[]');
+  const el=document.getElementById('ticketsList');
+  if(!tickets.length){
+    el.innerHTML=`<div class="empty-state" style="padding:2rem"><span class="es-icon">🎫</span><p>No tickets yet. Need help? Open a ticket or reach us on WhatsApp.</p><button class="btn btn-primary btn-sm" onclick="showNewTicket()">Open First Ticket</button></div>`;
+    return;
+  }
+  el.innerHTML=tickets.reverse().map(t=>`
+    <div style="border:1px solid var(--border);border-radius:10px;padding:1rem;margin-bottom:.7rem">
+      <div class="flex justify-between items-center flex-wrap" style="gap:.5rem;margin-bottom:.5rem">
+        <div>
+          <span style="font-weight:600;color:var(--white);font-size:.9rem">${t.subject}</span>
+          ${t.orderId?`<span style="font-family:monospace;font-size:.75rem;color:var(--green);margin-left:.5rem">${t.orderId}</span>`:''}
+        </div>
+        <div style="display:flex;align-items:center;gap:.7rem">
+          <span class="badge ${t.status==='Open'?'badge-amber':t.status==='Resolved'?'badge-green':'badge-gray'}">${t.status}</span>
+          <span style="font-size:.75rem;color:var(--muted)">${fmtDate(t.date)}</span>
+        </div>
+      </div>
+      <p style="color:var(--muted);font-size:.83rem;line-height:1.55">${t.message}</p>
+      ${t.reply?`<div style="margin-top:.7rem;padding:.7rem;background:rgba(0,200,83,.06);border-left:3px solid var(--green);border-radius:0 6px 6px 0"><div style="font-size:.72rem;color:var(--green);font-weight:600;margin-bottom:.2rem">Valley SMM Support</div><p style="color:var(--text);font-size:.83rem">${t.reply}</p></div>`:''}
+    </div>`).join('');
+}
+
+function showNewTicket(){document.getElementById('newTicketForm').style.display='block';document.getElementById('newTicketForm').scrollIntoView({behavior:'smooth'});}
+
+function submitTicket(){
+  const subject=document.getElementById('tSubject').value;
+  const message=document.getElementById('tMessage').value.trim();
+  const orderId=document.getElementById('tOrderId').value.trim();
+  if(!message){toast('Please describe your issue','error');return;}
+  const tickets=JSON.parse(localStorage.getItem('vsmm_tickets_'+user.id)||'[]');
+  const ticket={id:'TKT-'+Date.now(),subject,message,orderId,status:'Open',date:new Date().toISOString(),reply:null};
+  tickets.push(ticket);
+  localStorage.setItem('vsmm_tickets_'+user.id,JSON.stringify(tickets));
+  toast('✅ Ticket submitted! We\'ll reply within 2 hours.');
+  document.getElementById('tMessage').value='';
+  document.getElementById('tOrderId').value='';
+  document.getElementById('newTicketForm').style.display='none';
+  loadTickets();
+}
+loadTickets();
+</script>
+</body></html>

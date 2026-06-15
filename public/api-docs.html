@@ -1,0 +1,215 @@
+<!DOCTYPE html><html lang="en"><head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>API Access – Valley SMM</title>
+<link rel="stylesheet" href="/styles.css">
+<style>
+.code-block{background:#0a1208;border:1px solid var(--border);border-radius:10px;padding:1.2rem;font-family:monospace;font-size:.82rem;color:#a8d5b5;overflow-x:auto;white-space:pre;margin:.5rem 0 1.2rem}
+.endpoint{background:var(--dark2);border:1px solid var(--border);border-radius:10px;padding:1rem;margin-bottom:.8rem}
+.ep-method{display:inline-block;padding:.2rem .6rem;border-radius:5px;font-size:.72rem;font-weight:700;margin-right:.5rem}
+.ep-get{background:rgba(34,197,94,.15);color:#22c55e}
+.ep-post{background:rgba(59,130,246,.15);color:#3b82f6}
+.ep-put{background:rgba(245,158,11,.15);color:#f59e0b}
+.ep-url{font-family:monospace;font-size:.85rem;color:var(--text)}
+.ep-desc{font-size:.8rem;color:var(--muted);margin-top:.3rem}
+</style>
+</head><body>
+<div class="dash-layout">
+  <aside class="dash-sidebar" id="sidebar">
+    <div class="sidebar-logo"><a href="/dashboard.html">Valley<span>SMM</span></a></div>
+    <nav class="sidebar-nav">
+      <div class="nav-section">Main</div>
+      <a href="/dashboard.html">🏠 Dashboard</a>
+      <a href="/services.html">🛒 New Order</a>
+      <a href="/orders.html">📋 My Orders</a>
+      <div class="nav-section">Account</div>
+      <a href="/wallet.html">💰 Wallet & Funds</a>
+      <a href="/profile.html">👤 Profile</a>
+      <a href="/api-docs.html" class="active">🔌 API Access</a>
+    </nav>
+    <div class="sidebar-balance">
+      <div class="sb-label">Wallet Balance</div>
+      <div class="sb-amt" id="sideBalance">–</div>
+      <a href="/wallet.html" class="sb-btn">+ Add Funds</a>
+    </div>
+  </aside>
+  <main class="dash-main">
+    <header class="dash-topbar">
+      <div style="display:flex;align-items:center;gap:1rem">
+        <div class="hamburger" onclick="document.getElementById('sidebar').classList.toggle('open')"><span></span><span></span><span></span></div>
+        <span style="color:var(--muted);font-size:.9rem">🔌 API Access</span>
+      </div>
+      <div class="topbar-user">
+        <div class="topbar-avatar" id="avBtn">U</div>
+        <div class="user-dropdown" id="uDrop">
+          <div class="ud-name" id="udN">–</div>
+          <a href="#" onclick="clearAuth();location.href='/index.html'">🚪 Logout</a>
+        </div>
+      </div>
+    </header>
+    <div class="dash-content">
+      <div class="page-header"><h1>API Access</h1><p>Integrate Valley SMM into your own reseller panel or scripts.</p></div>
+
+      <!-- API Key -->
+      <div class="card mb-3" style="border-color:rgba(0,200,83,.3);background:linear-gradient(135deg,#0a1a0f,#0e2315)">
+        <div class="flex justify-between items-center flex-wrap" style="gap:1rem">
+          <div>
+            <div style="font-size:.72rem;color:var(--green);font-weight:600;letter-spacing:.1em;text-transform:uppercase;margin-bottom:.3rem">Your API Key</div>
+            <div style="font-family:monospace;font-size:1rem;color:var(--white);background:rgba(0,0,0,.3);padding:.5rem 1rem;border-radius:8px;letter-spacing:.05em" id="apiKeyDisplay">●●●●●●●●●●●●●●●●●●●●●●●●</div>
+          </div>
+          <div style="display:flex;gap:.7rem;flex-wrap:wrap">
+            <button class="btn btn-outline btn-sm" onclick="toggleKey()">👁 Reveal</button>
+            <button class="btn btn-primary btn-sm" onclick="copyKey()">📋 Copy</button>
+            <button class="btn btn-danger btn-sm" onclick="regenKey()">🔄 Regenerate</button>
+          </div>
+        </div>
+        <div class="alert alert-warning mt-2" style="font-size:.78rem">⚠️ Keep your API key secret. Never share it publicly. Regenerate immediately if compromised.</div>
+      </div>
+
+      <div class="grid-2" style="align-items:start">
+        <!-- Docs -->
+        <div class="card">
+          <h3 class="font-syne mb-2" style="color:var(--white);font-size:1rem">📖 API Reference</h3>
+          <p style="color:var(--muted);font-size:.85rem;margin-bottom:1rem">Base URL: <code style="color:var(--green);background:var(--dark2);padding:2px 6px;border-radius:4px">https://valleysmm.co.ke/api</code></p>
+          <p style="color:var(--muted);font-size:.82rem;margin-bottom:1rem">All requests must include your API key in the header:</p>
+          <div class="code-block">Authorization: Bearer YOUR_API_KEY</div>
+
+          <div class="endpoint">
+            <span class="ep-method ep-get">GET</span><span class="ep-url">/services</span>
+            <div class="ep-desc">Get all available services with prices</div>
+          </div>
+          <div class="endpoint">
+            <span class="ep-method ep-post">POST</span><span class="ep-url">/orders</span>
+            <div class="ep-desc">Place a new order</div>
+          </div>
+          <div class="endpoint">
+            <span class="ep-method ep-get">GET</span><span class="ep-url">/orders/my</span>
+            <div class="ep-desc">Get your order history</div>
+          </div>
+          <div class="endpoint">
+            <span class="ep-method ep-get">GET</span><span class="ep-url">/orders/:orderId</span>
+            <div class="ep-desc">Get single order status</div>
+          </div>
+          <div class="endpoint">
+            <span class="ep-method ep-get">GET</span><span class="ep-url">/auth/me</span>
+            <div class="ep-desc">Get account info and balance</div>
+          </div>
+        </div>
+
+        <!-- Code Examples -->
+        <div class="card">
+          <h3 class="font-syne mb-2" style="color:var(--white);font-size:1rem">💻 Code Examples</h3>
+          <div class="tabs mb-2">
+            <div class="tab active" onclick="switchTab('js',this)">JavaScript</div>
+            <div class="tab" onclick="switchTab('php',this)">PHP</div>
+            <div class="tab" onclick="switchTab('python',this)">Python</div>
+          </div>
+
+          <div id="tab-js">
+            <p style="color:var(--muted);font-size:.8rem;margin-bottom:.4rem">Place an order:</p>
+            <div class="code-block">const res = await fetch('https://valleysmm.co.ke/api/orders', {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json',
+    'Authorization': 'Bearer YOUR_API_KEY'
+  },
+  body: JSON.stringify({
+    serviceId: 'SERVICE_ID',
+    link: 'https://instagram.com/yourpage',
+    quantity: 1000
+  })
+});
+const data = await res.json();
+console.log(data.order.orderId);</div>
+          </div>
+
+          <div id="tab-php" style="display:none">
+            <p style="color:var(--muted);font-size:.8rem;margin-bottom:.4rem">Place an order:</p>
+            <div class="code-block">&lt;?php
+$ch = curl_init('https://valleysmm.co.ke/api/orders');
+curl_setopt_array($ch, [
+  CURLOPT_RETURNTRANSFER => true,
+  CURLOPT_POST => true,
+  CURLOPT_HTTPHEADER => [
+    'Content-Type: application/json',
+    'Authorization: Bearer YOUR_API_KEY'
+  ],
+  CURLOPT_POSTFIELDS => json_encode([
+    'serviceId' => 'SERVICE_ID',
+    'link'      => 'https://instagram.com/yourpage',
+    'quantity'  => 1000
+  ])
+]);
+$result = json_decode(curl_exec($ch));
+echo $result->order->orderId;</div>
+          </div>
+
+          <div id="tab-python" style="display:none">
+            <p style="color:var(--muted);font-size:.8rem;margin-bottom:.4rem">Place an order:</p>
+            <div class="code-block">import requests
+
+res = requests.post(
+  'https://valleysmm.co.ke/api/orders',
+  json={
+    'serviceId': 'SERVICE_ID',
+    'link': 'https://instagram.com/yourpage',
+    'quantity': 1000
+  },
+  headers={'Authorization': 'Bearer YOUR_API_KEY'}
+)
+data = res.json()
+print(data['order']['orderId'])</div>
+          </div>
+
+          <div class="alert alert-info" style="font-size:.8rem;margin-top:.5rem">
+            💡 <strong>Reseller tip:</strong> Use our API to power your own branded SMM panel and mark up our prices for profit.
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+<script src="/shared.js"></script>
+<script>
+const user = requireAuth(); if(!user) throw 0;
+document.getElementById('avBtn').textContent=user.name[0];
+document.getElementById('udN').textContent=user.name;
+document.getElementById('avBtn').onclick=()=>document.getElementById('uDrop').classList.toggle('show');
+document.addEventListener('click',e=>{if(!e.target.closest('.topbar-user'))document.getElementById('uDrop').classList.remove('show');});
+
+let realKey='', revealed=false;
+
+async function init(){
+  try{
+    const me=await apiFetch('/auth/me');
+    document.getElementById('sideBalance').textContent=fmtKES(me.balance);
+    realKey=me.apiKey||me._id+'-'+btoa(me.email).slice(0,12);
+  }catch(e){}
+}
+
+function toggleKey(){
+  revealed=!revealed;
+  document.getElementById('apiKeyDisplay').textContent=revealed?realKey:'●●●●●●●●●●●●●●●●●●●●●●●●';
+}
+function copyKey(){
+  navigator.clipboard.writeText(realKey).then(()=>toast('API key copied!')).catch(()=>{});
+}
+async function regenKey(){
+  if(!confirm('Regenerate API key? Your old key will stop working immediately.'))return;
+  try{
+    const d=await apiFetch('/auth/regen-key',{method:'POST'});
+    realKey=d.apiKey;
+    revealed=true;
+    document.getElementById('apiKeyDisplay').textContent=realKey;
+    toast('✅ New API key generated');
+  }catch(e){toast(e.message,'error');}
+}
+
+function switchTab(tab, el){
+  ['js','php','python'].forEach(t=>document.getElementById('tab-'+t).style.display='none');
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById('tab-'+tab).style.display='block';
+  el.classList.add('active');
+}
+init();
+</script>
+</body></html>

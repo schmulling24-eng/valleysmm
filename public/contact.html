@@ -1,0 +1,122 @@
+<!DOCTYPE html><html lang="en"><head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Contact Us – Valley SMM</title>
+<link rel="stylesheet" href="/styles.css">
+<style>
+.land-nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-items:center;justify-content:space-between;padding:0 5%;height:68px;background:rgba(7,13,10,.92);backdrop-filter:blur(18px);border-bottom:1px solid var(--border)}
+.land-logo{font-family:'Syne',sans-serif;font-weight:800;font-size:1.5rem;color:var(--white);text-decoration:none}.land-logo span{color:var(--green)}
+.contact-wrap{max-width:960px;margin:0 auto;padding:7rem 5% 5rem}
+.contact-method{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:1.5rem;display:flex;align-items:center;gap:1rem;transition:.2s}
+.contact-method:hover{border-color:var(--green)}
+.contact-method .cm-icon{font-size:2rem;flex-shrink:0}
+.contact-method h3{font-family:'Syne',sans-serif;font-weight:700;font-size:.95rem;color:var(--white);margin-bottom:.2rem}
+.contact-method p{font-size:.82rem;color:var(--muted)}
+.contact-method a{color:var(--green);font-size:.85rem;font-weight:600;text-decoration:none}
+</style></head><body>
+<nav class="land-nav">
+  <a href="/index.html" class="land-logo">Valley<span>SMM</span></a>
+  <div style="display:flex;gap:1rem">
+    <a href="/login.html" style="color:var(--muted);text-decoration:none;font-size:.9rem">Login</a>
+    <a href="/register.html" style="background:var(--green);color:#000;padding:.4rem 1rem;border-radius:6px;font-weight:700;font-size:.88rem;text-decoration:none">Sign Up</a>
+  </div>
+</nav>
+<div class="contact-wrap">
+  <div style="margin-bottom:3rem">
+    <div style="font-size:.75rem;letter-spacing:.12em;text-transform:uppercase;color:var(--green);font-weight:600;margin-bottom:.5rem">Get In Touch</div>
+    <h1 style="font-family:'Syne',sans-serif;font-size:2.2rem;font-weight:800;color:var(--white);margin-bottom:.5rem">Contact & Support</h1>
+    <p style="color:var(--muted)">We're available 24/7. Choose the fastest way to reach us.</p>
+  </div>
+  <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:1rem;margin-bottom:3rem">
+    <div class="contact-method">
+      <div class="cm-icon">💬</div>
+      <div><h3>WhatsApp Support</h3><p>Fastest response — usually under 5 minutes</p><a href="https://wa.me/254700000000" target="_blank">+254 700 000 000 →</a></div>
+    </div>
+    <div class="contact-method">
+      <div class="cm-icon">✉️</div>
+      <div><h3>Email Support</h3><p>For detailed queries and billing issues</p><a href="mailto:support@valleysmm.co.ke">support@valleysmm.co.ke →</a></div>
+    </div>
+    <div class="contact-method">
+      <div class="cm-icon">✈️</div>
+      <div><h3>Telegram Channel</h3><p>Updates, downtime notices and announcements</p><a href="https://t.me/valleysmm" target="_blank">@valleysmm →</a></div>
+    </div>
+    <div class="contact-method">
+      <div class="cm-icon">🕐</div>
+      <div><h3>Support Hours</h3><p>WhatsApp & Live Chat</p><a href="#">Mon–Sun · 24 hours a day</a></div>
+    </div>
+  </div>
+
+  <!-- Contact Form -->
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:2rem;align-items:start">
+    <div class="card">
+      <h2 style="font-family:'Syne',sans-serif;font-size:1.1rem;font-weight:800;color:var(--white);margin-bottom:1.2rem">📩 Send a Message</h2>
+      <div class="form-group"><label class="form-label">Full Name</label><input class="form-control" id="cName" placeholder="John Kamau"></div>
+      <div class="form-group"><label class="form-label">Email Address</label><input type="email" class="form-control" id="cEmail" placeholder="john@example.com"></div>
+      <div class="form-group">
+        <label class="form-label">Subject</label>
+        <select class="form-control" id="cSubject">
+          <option>Order issue / refund</option>
+          <option>M-Pesa payment not credited</option>
+          <option>Account suspended</option>
+          <option>API / Reseller inquiry</option>
+          <option>New service request</option>
+          <option>General question</option>
+          <option>Other</option>
+        </select>
+      </div>
+      <div class="form-group"><label class="form-label">Order ID (if applicable)</label><input class="form-control" id="cOrderId" placeholder="ORD-XXXXXXXX"></div>
+      <div class="form-group"><label class="form-label">Message</label><textarea class="form-control" id="cMessage" rows="5" placeholder="Describe your issue in detail..."></textarea></div>
+      <button class="btn btn-primary btn-full" id="sendBtn" onclick="sendMessage()">📤 Send Message</button>
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:1rem">
+      <div class="card" style="background:linear-gradient(135deg,#0a1a0f,#0e2315);border-color:rgba(0,200,83,.25)">
+        <h3 style="font-family:'Syne',sans-serif;font-size:.95rem;font-weight:700;color:var(--white);margin-bottom:1rem">⚡ Quick Answers</h3>
+        <div style="display:flex;flex-direction:column;gap:.7rem">
+          <details style="border-bottom:1px solid var(--border);padding-bottom:.7rem">
+            <summary style="color:var(--text);font-size:.85rem;cursor:pointer;font-weight:500">M-Pesa not credited after payment?</summary>
+            <p style="color:var(--muted);font-size:.8rem;margin-top:.5rem;line-height:1.6">Wait 5 minutes, then check your transaction history. If still not credited, send us your M-Pesa code via WhatsApp.</p>
+          </details>
+          <details style="border-bottom:1px solid var(--border);padding-bottom:.7rem">
+            <summary style="color:var(--text);font-size:.85rem;cursor:pointer;font-weight:500">Order stuck on Pending?</summary>
+            <p style="color:var(--muted);font-size:.8rem;margin-top:.5rem;line-height:1.6">Open a ticket with your Order ID. Processing usually starts within 0–30 minutes depending on the service.</p>
+          </details>
+          <details style="border-bottom:1px solid var(--border);padding-bottom:.7rem">
+            <summary style="color:var(--text);font-size:.85rem;cursor:pointer;font-weight:500">How do I get a refund?</summary>
+            <p style="color:var(--muted);font-size:.8rem;margin-top:.5rem;line-height:1.6">Refunds for incomplete orders are issued as wallet credits within 24 hours. Contact us with your Order ID.</p>
+          </details>
+          <details>
+            <summary style="color:var(--text);font-size:.85rem;cursor:pointer;font-weight:500">I want to become a reseller</summary>
+            <p style="color:var(--muted);font-size:.8rem;margin-top:.5rem;line-height:1.6">Sign up for a free account, then check our <a href="/api-docs.html" style="color:var(--green)">API docs page</a> for reseller access details.</p>
+          </details>
+        </div>
+      </div>
+      <div class="card">
+        <h3 style="font-family:'Syne',sans-serif;font-size:.95rem;font-weight:700;color:var(--white);margin-bottom:.8rem">📍 Based In</h3>
+        <p style="color:var(--muted);font-size:.85rem;line-height:1.7">🇰🇪 Nairobi, Kenya<br>Serving customers across East Africa<br>Business Registration: <span style="color:var(--text)">PVT/XXXXX/2024</span></p>
+      </div>
+    </div>
+  </div>
+</div>
+<footer style="background:var(--dark2);border-top:1px solid var(--border);padding:1.5rem 5%;text-align:center;margin-top:3rem">
+  <p style="color:var(--muted);font-size:.8rem">© 2026 Valley SMM · <a href="/terms.html" style="color:var(--green)">Terms</a> · <a href="/privacy.html" style="color:var(--green)">Privacy</a> · <a href="/contact.html" style="color:var(--green)">Contact</a></p>
+</footer>
+<script src="/shared.js"></script>
+<script>
+async function sendMessage(){
+  const name=document.getElementById('cName').value.trim();
+  const email=document.getElementById('cEmail').value.trim();
+  const message=document.getElementById('cMessage').value.trim();
+  if(!name||!email||!message){toast('Please fill in all required fields','error');return;}
+  const btn=document.getElementById('sendBtn');
+  btn.disabled=true;btn.textContent='Sending...';
+  // In production, POST to /api/contact
+  await new Promise(r=>setTimeout(r,1000));
+  toast('✅ Message sent! We\'ll reply within 2 hours.');
+  document.getElementById('cName').value='';
+  document.getElementById('cEmail').value='';
+  document.getElementById('cMessage').value='';
+  document.getElementById('cOrderId').value='';
+  btn.disabled=false;btn.textContent='📤 Send Message';
+}
+</script>
+</body></html>

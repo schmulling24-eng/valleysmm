@@ -1,0 +1,117 @@
+<!DOCTYPE html><html lang="en"><head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>My Orders – Valley SMM</title>
+<link rel="stylesheet" href="/styles.css">
+</head><body>
+<div class="dash-layout">
+  <aside class="dash-sidebar" id="sidebar">
+    <div class="sidebar-logo"><a href="/dashboard.html">Valley<span>SMM</span></a></div>
+    <nav class="sidebar-nav">
+      <div class="nav-section">Main</div>
+      <a href="/dashboard.html">🏠 Dashboard</a>
+      <a href="/services.html">🛒 New Order</a>
+      <a href="/orders.html" class="active">📋 My Orders</a>
+      <div class="nav-section">Account</div>
+      <a href="/wallet.html">💰 Wallet & Funds</a>
+      <a href="/profile.html">👤 Profile</a>
+      <a href="/api-docs.html">🔌 API Access</a>
+    </nav>
+    <div class="sidebar-balance">
+      <div class="sb-label">Wallet Balance</div>
+      <div class="sb-amt" id="sideBalance">–</div>
+      <a href="/wallet.html" class="sb-btn">+ Add Funds</a>
+    </div>
+  </aside>
+  <main class="dash-main">
+    <header class="dash-topbar">
+      <div style="display:flex;align-items:center;gap:1rem">
+        <div class="hamburger" onclick="document.getElementById('sidebar').classList.toggle('open')"><span></span><span></span><span></span></div>
+        <span style="font-size:.9rem;color:var(--muted)">📋 My Orders</span>
+      </div>
+      <div class="topbar-user">
+        <div class="topbar-avatar" id="avBtn">U</div>
+        <div class="user-dropdown" id="uDrop">
+          <div class="ud-name" id="udN">–</div>
+          <a href="/wallet.html">💰 Add Funds</a>
+          <a href="/profile.html">👤 Profile</a>
+          <a href="#" onclick="clearAuth();location.href='/index.html'">🚪 Logout</a>
+        </div>
+      </div>
+    </header>
+    <div class="dash-content">
+      <div class="page-header flex justify-between items-center flex-wrap" style="gap:1rem">
+        <div><h1>My Orders</h1><p>Track all your orders in real-time.</p></div>
+        <a href="/services.html" class="btn btn-primary">+ New Order</a>
+      </div>
+
+      <!-- Filters -->
+      <div class="search-bar mb-3">
+        <select class="form-control" id="statusFilter" onchange="loadOrders(1)" style="max-width:180px">
+          <option value="">All Statuses</option>
+          <option>Pending</option><option>Processing</option><option>In Progress</option>
+          <option>Completed</option><option>Partial</option><option>Cancelled</option>
+        </select>
+        <a href="/services.html" class="btn btn-outline">🛒 Place New Order</a>
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead><tr>
+            <th>Order ID</th><th>Service</th><th>Link</th><th>Qty</th><th>Charge</th><th>Status</th><th>Date</th>
+          </tr></thead>
+          <tbody id="ordersBody"><tr><td colspan="7" style="text-align:center;padding:2rem;color:var(--muted)">Loading...</td></tr></tbody>
+        </table>
+      </div>
+      <div class="pagination" id="pagination"></div>
+    </div>
+  </main>
+</div>
+
+<script src="/shared.js"></script>
+<script>
+const user = requireAuth(); if(!user) throw 0;
+document.getElementById('avBtn').textContent=user.name[0];
+document.getElementById('udN').textContent=user.name;
+document.getElementById('avBtn').onclick=()=>document.getElementById('uDrop').classList.toggle('show');
+document.addEventListener('click',e=>{if(!e.target.closest('.topbar-user'))document.getElementById('uDrop').classList.remove('show');});
+
+apiFetch('/auth/me').then(me=>{
+  document.getElementById('sideBalance').textContent=fmtKES(me.balance);
+}).catch(()=>{});
+
+let currentPage=1;
+async function loadOrders(page=1){
+  currentPage=page;
+  const status=document.getElementById('statusFilter').value;
+  const tbody=document.getElementById('ordersBody');
+  tbody.innerHTML='<tr><td colspan="7" style="text-align:center;padding:2rem;color:var(--muted)">Loading...</td></tr>';
+  try{
+    const {orders,total,pages}=await apiFetch(`/orders/my?page=${page}&limit=20${status?'&status='+status:''}`);
+    if(!orders.length){
+      tbody.innerHTML='<tr><td colspan="7"><div class="empty-state"><span class="es-icon">📭</span><p>No orders found</p><a href="/services.html" class="btn btn-primary btn-sm">Place First Order</a></div></td></tr>';
+    } else {
+      tbody.innerHTML=orders.map(o=>`
+        <tr>
+          <td><span style="font-family:monospace;font-size:.8rem;color:var(--green)">${o.orderId}</span></td>
+          <td><div style="font-size:.85rem;color:var(--white);max-width:180px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${o.service?.name||'–'}</div><div style="font-size:.72rem;color:var(--muted)">${o.service?.platform||''}</div></td>
+          <td><a href="${o.link}" target="_blank" style="color:var(--blue);font-size:.78rem;max-width:140px;display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${o.link}</a></td>
+          <td style="color:var(--text)">${o.quantity.toLocaleString()}</td>
+          <td style="color:var(--green);font-weight:600">${fmtKES(o.charge)}</td>
+          <td>${statusBadge(o.status)}</td>
+          <td style="font-size:.78rem;color:var(--muted)">${fmtDate(o.createdAt)}</td>
+        </tr>`).join('');
+    }
+    // Pagination
+    const pg=document.getElementById('pagination');
+    pg.innerHTML='';
+    for(let i=1;i<=pages;i++){
+      const b=document.createElement('button');
+      b.className='page-btn'+(i===page?' active':'');
+      b.textContent=i; b.onclick=()=>loadOrders(i);
+      pg.appendChild(b);
+    }
+  }catch(e){tbody.innerHTML=`<tr><td colspan="7" style="text-align:center;color:var(--red);padding:2rem">${e.message}</td></tr>`;}
+}
+loadOrders();
+</script>
+</body></html>

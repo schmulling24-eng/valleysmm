@@ -1,0 +1,133 @@
+<!DOCTYPE html><html lang="en"><head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Profile – Valley SMM</title>
+<link rel="stylesheet" href="/styles.css">
+</head><body>
+<div class="dash-layout">
+  <aside class="dash-sidebar" id="sidebar">
+    <div class="sidebar-logo"><a href="/dashboard.html">Valley<span>SMM</span></a></div>
+    <nav class="sidebar-nav">
+      <div class="nav-section">Main</div>
+      <a href="/dashboard.html">🏠 Dashboard</a>
+      <a href="/services.html">🛒 New Order</a>
+      <a href="/orders.html">📋 My Orders</a>
+      <div class="nav-section">Account</div>
+      <a href="/wallet.html">💰 Wallet & Funds</a>
+      <a href="/profile.html" class="active">👤 Profile</a>
+      <a href="/api-docs.html">🔌 API Access</a>
+    </nav>
+    <div class="sidebar-balance">
+      <div class="sb-label">Wallet Balance</div>
+      <div class="sb-amt" id="sideBalance">–</div>
+      <a href="/wallet.html" class="sb-btn">+ Add Funds</a>
+    </div>
+  </aside>
+  <main class="dash-main">
+    <header class="dash-topbar">
+      <div style="display:flex;align-items:center;gap:1rem">
+        <div class="hamburger" onclick="document.getElementById('sidebar').classList.toggle('open')"><span></span><span></span><span></span></div>
+        <span style="color:var(--muted);font-size:.9rem">👤 Profile</span>
+      </div>
+      <div class="topbar-user">
+        <div class="topbar-avatar" id="avBtn">U</div>
+        <div class="user-dropdown" id="uDrop">
+          <div class="ud-name" id="udN">–</div>
+          <a href="#" onclick="clearAuth();location.href='/index.html'">🚪 Logout</a>
+        </div>
+      </div>
+    </header>
+    <div class="dash-content">
+      <div class="page-header"><h1>My Profile</h1><p>Manage your account details and security settings.</p></div>
+      <div class="grid-2" style="align-items:start">
+        <!-- Profile Info -->
+        <div class="card">
+          <div style="display:flex;align-items:center;gap:1rem;margin-bottom:1.5rem">
+            <div style="width:60px;height:60px;border-radius:50%;background:var(--green);color:#000;display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-size:1.5rem;font-weight:800" id="bigAvatar">U</div>
+            <div><div style="font-family:'Syne',sans-serif;font-weight:700;font-size:1.1rem;color:var(--white)" id="profName">–</div><div style="font-size:.82rem;color:var(--muted)" id="profEmail">–</div></div>
+          </div>
+          <h3 class="font-syne mb-2" style="color:var(--white);font-size:.95rem">Update Profile</h3>
+          <div class="form-group"><label class="form-label">Full Name</label><input class="form-control" id="updName" placeholder="Your full name"></div>
+          <div class="form-group"><label class="form-label">Phone Number (M-Pesa)</label><input type="tel" class="form-control" id="updPhone" placeholder="0712 345 678"></div>
+          <div class="form-group"><label class="form-label">Email Address</label><input type="email" class="form-control" id="updEmail" placeholder="your@email.com"></div>
+          <button class="btn btn-primary" onclick="updateProfile()">Save Changes</button>
+        </div>
+        <!-- Security + Stats -->
+        <div style="display:flex;flex-direction:column;gap:1.2rem">
+          <div class="card">
+            <h3 class="font-syne mb-2" style="color:var(--white);font-size:.95rem">🔐 Change Password</h3>
+            <div class="form-group"><label class="form-label">Current Password</label><input type="password" class="form-control" id="curPw" placeholder="••••••••"></div>
+            <div class="form-group"><label class="form-label">New Password</label><input type="password" class="form-control" id="newPw" placeholder="Min 6 characters"></div>
+            <div class="form-group"><label class="form-label">Confirm New Password</label><input type="password" class="form-control" id="confirmPw" placeholder="Repeat new password"></div>
+            <button class="btn btn-outline" onclick="changePassword()">Update Password</button>
+          </div>
+          <div class="card">
+            <h3 class="font-syne mb-2" style="color:var(--white);font-size:.95rem">📊 Account Stats</h3>
+            <div style="display:flex;flex-direction:column;gap:.6rem">
+              <div style="display:flex;justify-content:space-between;padding:.5rem 0;border-bottom:1px solid var(--border)"><span style="color:var(--muted);font-size:.85rem">Wallet Balance</span><span style="color:var(--green);font-weight:700" id="stBal">–</span></div>
+              <div style="display:flex;justify-content:space-between;padding:.5rem 0;border-bottom:1px solid var(--border)"><span style="color:var(--muted);font-size:.85rem">Total Orders</span><span style="color:var(--white);font-weight:600" id="stOrders">–</span></div>
+              <div style="display:flex;justify-content:space-between;padding:.5rem 0;border-bottom:1px solid var(--border)"><span style="color:var(--muted);font-size:.85rem">Total Spent</span><span style="color:var(--white);font-weight:600" id="stSpent">–</span></div>
+              <div style="display:flex;justify-content:space-between;padding:.5rem 0"><span style="color:var(--muted);font-size:.85rem">Member Since</span><span style="color:var(--white);font-size:.82rem" id="stJoined">–</span></div>
+            </div>
+          </div>
+          <div class="card" style="background:rgba(239,68,68,.05);border-color:rgba(239,68,68,.2)">
+            <h3 class="font-syne mb-2" style="color:var(--red);font-size:.95rem">⚠️ Danger Zone</h3>
+            <p style="color:var(--muted);font-size:.82rem;margin-bottom:1rem">Sign out of all devices and clear your session.</p>
+            <button class="btn btn-danger btn-sm" onclick="if(confirm('Sign out?')){clearAuth();location.href='/index.html'}">Sign Out Everywhere</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+<script src="/shared.js"></script>
+<script>
+const user = requireAuth(); if(!user) throw 0;
+document.getElementById('avBtn').textContent=user.name[0];
+document.getElementById('udN').textContent=user.name;
+document.getElementById('avBtn').onclick=()=>document.getElementById('uDrop').classList.toggle('show');
+document.addEventListener('click',e=>{if(!e.target.closest('.topbar-user'))document.getElementById('uDrop').classList.remove('show');});
+
+async function init(){
+  try{
+    const me=await apiFetch('/auth/me');
+    document.getElementById('bigAvatar').textContent=me.name[0].toUpperCase();
+    document.getElementById('profName').textContent=me.name;
+    document.getElementById('profEmail').textContent=me.email;
+    document.getElementById('updName').value=me.name;
+    document.getElementById('updPhone').value=me.phone||'';
+    document.getElementById('updEmail').value=me.email;
+    document.getElementById('sideBalance').textContent=fmtKES(me.balance);
+    document.getElementById('stBal').textContent=fmtKES(me.balance);
+    document.getElementById('stOrders').textContent=me.totalOrders||0;
+    document.getElementById('stSpent').textContent=fmtKES(me.totalSpent);
+    document.getElementById('stJoined').textContent=new Date(me.createdAt).toLocaleDateString('en-KE',{day:'2-digit',month:'long',year:'numeric'});
+  }catch(e){}
+}
+
+async function updateProfile(){
+  try{
+    await apiFetch('/auth/update',{method:'PUT',body:JSON.stringify({
+      name:document.getElementById('updName').value,
+      phone:document.getElementById('updPhone').value,
+      email:document.getElementById('updEmail').value
+    })});
+    toast('✅ Profile updated');init();
+  }catch(e){toast(e.message,'error');}
+}
+
+async function changePassword(){
+  const cur=document.getElementById('curPw').value;
+  const nw=document.getElementById('newPw').value;
+  const conf=document.getElementById('confirmPw').value;
+  if(!cur||!nw){toast('Fill all password fields','error');return;}
+  if(nw!==conf){toast('Passwords do not match','error');return;}
+  if(nw.length<6){toast('Min 6 characters','error');return;}
+  try{
+    await apiFetch('/auth/change-password',{method:'PUT',body:JSON.stringify({currentPassword:cur,newPassword:nw})});
+    toast('✅ Password changed');
+    document.getElementById('curPw').value='';document.getElementById('newPw').value='';document.getElementById('confirmPw').value='';
+  }catch(e){toast(e.message,'error');}
+}
+init();
+</script>
+</body></html>

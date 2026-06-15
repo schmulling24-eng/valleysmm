@@ -1,0 +1,73 @@
+<!DOCTYPE html><html lang="en"><head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Register – Valley SMM</title>
+<link rel="stylesheet" href="/styles.css">
+<style>
+  body{display:flex;align-items:center;justify-content:center;min-height:100vh;background:var(--dark);padding:1rem}
+  .auth-wrap{width:100%;max-width:440px}
+  .auth-logo{text-align:center;margin-bottom:2rem;font-family:'Syne',sans-serif;font-size:1.8rem;font-weight:800;color:var(--white)}
+  .auth-logo span{color:var(--green)}
+  .auth-card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:2rem}
+  .auth-card h2{font-family:'Syne',sans-serif;font-weight:800;font-size:1.3rem;color:var(--white);margin-bottom:.3rem}
+  .auth-card p{color:var(--muted);font-size:.85rem;margin-bottom:1.5rem}
+  .auth-footer{text-align:center;margin-top:1.2rem;font-size:.85rem;color:var(--muted)}
+  .auth-footer a{color:var(--green);font-weight:600}
+  .perks{display:flex;flex-direction:column;gap:.5rem;margin-bottom:1.5rem}
+  .perk{display:flex;align-items:center;gap:.5rem;font-size:.82rem;color:var(--muted)}
+  .perk span{color:var(--green)}
+</style></head><body>
+<div class="auth-wrap">
+  <div class="auth-logo">Valley<span>SMM</span></div>
+  <div class="auth-card">
+    <h2>Create your account</h2>
+    <p>Join 50,000+ Kenyans growing their social media</p>
+    <div class="perks">
+      <div class="perk"><span>✓</span> Free to sign up, no credit card needed</div>
+      <div class="perk"><span>✓</span> M-Pesa deposits from KES 50</div>
+      <div class="perk"><span>✓</span> Instant order processing 24/7</div>
+    </div>
+    <form id="regForm">
+      <div class="form-group">
+        <label class="form-label">Full Name</label>
+        <input type="text" class="form-control" id="name" placeholder="John Kamau" required>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Email Address</label>
+        <input type="email" class="form-control" id="email" placeholder="you@example.com" required>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Phone (for M-Pesa)</label>
+        <input type="tel" class="form-control" id="phone" placeholder="0712 345 678">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Password</label>
+        <input type="password" class="form-control" id="password" placeholder="Min 6 characters" required minlength="6">
+      </div>
+      <button type="submit" class="btn btn-primary btn-full mt-2" id="regBtn">Create Free Account</button>
+    </form>
+    <div class="auth-footer">Already have an account? <a href="/login.html">Sign in</a></div>
+  </div>
+</div>
+<script src="/shared.js"></script>
+<script>
+  if(getToken()) window.location.href='/dashboard.html';
+  document.getElementById('regForm').addEventListener('submit', async e => {
+    e.preventDefault();
+    const btn = document.getElementById('regBtn');
+    btn.disabled=true; btn.textContent='Creating account...';
+    try {
+      const data = await apiFetch('/auth/register', {
+        method:'POST', body: JSON.stringify({
+          name: document.getElementById('name').value,
+          email: document.getElementById('email').value,
+          phone: document.getElementById('phone').value,
+          password: document.getElementById('password').value
+        })
+      });
+      setAuth(data.token, data.user);
+      toast('Account created! Welcome to Valley SMM 🎉');
+      setTimeout(() => window.location.href='/dashboard.html', 600);
+    } catch(e) { toast(e.message,'error'); btn.disabled=false; btn.textContent='Create Free Account'; }
+  });
+</script>
+</body></html>

@@ -1,0 +1,140 @@
+<!DOCTYPE html><html lang="en"><head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Admin Panel – Valley SMM</title>
+<link rel="stylesheet" href="/styles.css">
+</head><body>
+<div class="dash-layout">
+  <aside class="dash-sidebar" id="sidebar">
+    <div class="sidebar-logo"><a href="/dashboard.html">Valley<span>SMM</span></a></div>
+    <nav class="sidebar-nav">
+      <div class="nav-section">Admin</div>
+      <a href="/admin.html" class="active">⚙️ Overview</a>
+      <a href="/admin-users.html">👥 Users</a>
+      <a href="/admin-orders.html">📋 All Orders</a>
+      <a href="/admin-services.html">🛒 Services</a>
+      <div class="nav-section">Panel</div>
+      <a href="/dashboard.html">🏠 User View</a>
+    </nav>
+    <div class="sidebar-balance">
+      <div class="sb-label">Admin Account</div>
+      <div class="sb-amt" style="font-size:1rem" id="adminName">–</div>
+    </div>
+  </aside>
+  <main class="dash-main">
+    <header class="dash-topbar">
+      <div style="display:flex;align-items:center;gap:1rem">
+        <div class="hamburger" onclick="document.getElementById('sidebar').classList.toggle('open')"><span></span><span></span><span></span></div>
+        <span style="font-size:.9rem;color:var(--muted)">⚙️ Admin Dashboard</span>
+      </div>
+      <div class="topbar-user">
+        <div class="topbar-avatar" id="avBtn">A</div>
+        <div class="user-dropdown" id="uDrop">
+          <a href="/dashboard.html">🏠 User View</a>
+          <a href="#" onclick="clearAuth();location.href='/index.html'">🚪 Logout</a>
+        </div>
+      </div>
+    </header>
+    <div class="dash-content">
+      <div class="page-header"><h1>Admin Overview</h1><p>Manage your entire SMM panel from here.</p></div>
+
+      <div class="grid-4 mb-3">
+        <div class="stat-card"><div class="stat-icon green">💰</div><div><div class="stat-label">Total Revenue</div><div class="stat-value text-green" id="statRev">–</div></div></div>
+        <div class="stat-card"><div class="stat-icon blue">👥</div><div><div class="stat-label">Total Users</div><div class="stat-value" id="statUsers">–</div></div></div>
+        <div class="stat-card"><div class="stat-icon amber">📋</div><div><div class="stat-label">Total Orders</div><div class="stat-value" id="statOrders">–</div></div></div>
+        <div class="stat-card"><div class="stat-icon red">🛒</div><div><div class="stat-label">Active Services</div><div class="stat-value" id="statSvcs">–</div></div></div>
+      </div>
+
+      <div class="grid-2 mb-3">
+        <div class="stat-card"><div class="stat-icon green">📅</div><div><div class="stat-label">Today's Revenue</div><div class="stat-value text-green" id="todayRev">–</div></div></div>
+        <div class="stat-card"><div class="stat-icon blue">⚡</div><div><div class="stat-label">Today's Orders</div><div class="stat-value" id="todayOrders">–</div></div></div>
+      </div>
+
+      <div class="grid-2">
+        <!-- Quick Credit -->
+        <div class="card">
+          <h3 class="font-syne mb-2" style="color:var(--white);font-size:1rem">💸 Manual Wallet Adjustment</h3>
+          <div class="form-group">
+            <label class="form-label">User Email</label>
+            <input class="form-control" id="adjEmail" placeholder="user@example.com">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Amount (positive = credit, negative = debit)</label>
+            <input type="number" class="form-control" id="adjAmount" placeholder="500">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Description</label>
+            <input class="form-control" id="adjDesc" placeholder="Bonus / Correction">
+          </div>
+          <button class="btn btn-primary" onclick="adjustBalance()">Apply Adjustment</button>
+        </div>
+
+        <!-- Recent Users -->
+        <div class="card">
+          <div class="flex justify-between items-center mb-2">
+            <h3 class="font-syne" style="color:var(--white);font-size:1rem">👥 Recent Users</h3>
+            <a href="/admin-users.html" class="btn btn-outline btn-sm">View All</a>
+          </div>
+          <div id="recentUsers"><div style="color:var(--muted);font-size:.85rem">Loading...</div></div>
+        </div>
+      </div>
+
+      <!-- Quick Links -->
+      <div class="card mt-3">
+        <h3 class="font-syne mb-2" style="color:var(--white);font-size:1rem">🔧 Quick Actions</h3>
+        <div style="display:flex;flex-wrap:wrap;gap:.7rem">
+          <a href="/admin-users.html" class="btn btn-outline">👥 Manage Users</a>
+          <a href="/admin-orders.html" class="btn btn-outline">📋 All Orders</a>
+          <a href="/admin-services.html" class="btn btn-outline">🛒 Manage Services</a>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+<script src="/shared.js"></script>
+<script>
+const user = requireAuth(true); if(!user) throw 0;
+document.getElementById('avBtn').textContent=user.name[0];
+document.getElementById('adminName').textContent=user.name;
+document.getElementById('avBtn').onclick=()=>document.getElementById('uDrop').classList.toggle('show');
+document.addEventListener('click',e=>{if(!e.target.closest('.topbar-user'))document.getElementById('uDrop').classList.remove('show');});
+
+async function init(){
+  try{
+    const s=await apiFetch('/admin/stats');
+    document.getElementById('statRev').textContent=fmtKES(s.totalRevenue);
+    document.getElementById('statUsers').textContent=s.totalUsers.toLocaleString();
+    document.getElementById('statOrders').textContent=s.totalOrders.toLocaleString();
+    document.getElementById('statSvcs').textContent=s.totalServices.toLocaleString();
+    document.getElementById('todayRev').textContent=fmtKES(s.todayRevenue);
+    document.getElementById('todayOrders').textContent=s.todayOrders;
+  }catch(e){}
+  try{
+    const {users}=await apiFetch('/admin/users?limit=6');
+    document.getElementById('recentUsers').innerHTML=users.map(u=>`
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:.55rem 0;border-bottom:1px solid var(--border)">
+        <div><div style="font-size:.85rem;color:var(--white)">${u.name}</div><div style="font-size:.72rem;color:var(--muted)">${u.email}</div></div>
+        <div style="text-align:right"><div style="font-size:.82rem;color:var(--green)">${fmtKES(u.balance)}</div><div style="font-size:.72rem;color:var(--muted)">${u.totalOrders} orders</div></div>
+      </div>`).join('');
+  }catch(e){}
+}
+
+async function adjustBalance(){
+  const email=document.getElementById('adjEmail').value.trim();
+  const amount=parseFloat(document.getElementById('adjAmount').value);
+  const description=document.getElementById('adjDesc').value.trim();
+  if(!email||!amount){toast('Fill email and amount','error');return;}
+  try{
+    // Find user first
+    const {users}=await apiFetch('/admin/users?search='+encodeURIComponent(email));
+    if(!users.length){toast('User not found','error');return;}
+    await apiFetch('/wallet/admin/adjust',{method:'POST',body:JSON.stringify({userId:users[0]._id,amount,description:description||'Admin adjustment'})});
+    toast('✅ Balance adjusted for '+users[0].name);
+    document.getElementById('adjEmail').value='';
+    document.getElementById('adjAmount').value='';
+    document.getElementById('adjDesc').value='';
+    init();
+  }catch(e){toast(e.message,'error');}
+}
+init();
+</script>
+</body></html>

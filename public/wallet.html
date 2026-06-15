@@ -1,0 +1,199 @@
+<!DOCTYPE html><html lang="en"><head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Wallet – Valley SMM</title>
+<link rel="stylesheet" href="/styles.css">
+<style>
+.method-card{background:var(--card);border:2px solid var(--border);border-radius:12px;padding:1.2rem;cursor:pointer;transition:.2s;text-align:center}
+.method-card:hover,.method-card.selected{border-color:var(--green);background:var(--green-glow)}
+.method-card .mc-icon{font-size:2rem;display:block;margin-bottom:.4rem}
+.method-card .mc-name{font-weight:700;color:var(--white);font-size:.9rem}
+.method-card .mc-desc{font-size:.75rem;color:var(--muted);margin-top:.2rem}
+.mpesa-steps{background:var(--dark2);border-radius:10px;padding:1rem;margin-top:1rem}
+.mp-step{display:flex;align-items:flex-start;gap:.7rem;padding:.5rem 0;border-bottom:1px solid var(--border)}
+.mp-step:last-child{border:none}
+.mp-num{width:22px;height:22px;border-radius:50%;background:var(--green-glow);border:1px solid rgba(0,200,83,.3);display:flex;align-items:center;justify-content:center;font-size:.7rem;font-weight:700;color:var(--green);flex-shrink:0;margin-top:.1rem}
+.mp-text{font-size:.82rem;color:var(--muted)}
+.mp-text strong{color:var(--white)}
+</style>
+</head><body>
+<div class="dash-layout">
+  <aside class="dash-sidebar" id="sidebar">
+    <div class="sidebar-logo"><a href="/dashboard.html">Valley<span>SMM</span></a></div>
+    <nav class="sidebar-nav">
+      <div class="nav-section">Main</div>
+      <a href="/dashboard.html">🏠 Dashboard</a>
+      <a href="/services.html">🛒 New Order</a>
+      <a href="/orders.html">📋 My Orders</a>
+      <div class="nav-section">Account</div>
+      <a href="/wallet.html" class="active">💰 Wallet & Funds</a>
+      <a href="/profile.html">👤 Profile</a>
+      <a href="/api-docs.html">🔌 API Access</a>
+    </nav>
+    <div class="sidebar-balance">
+      <div class="sb-label">Wallet Balance</div>
+      <div class="sb-amt" id="sideBalance">–</div>
+      <a href="/wallet.html" class="sb-btn">+ Add Funds</a>
+    </div>
+  </aside>
+  <main class="dash-main">
+    <header class="dash-topbar">
+      <div style="display:flex;align-items:center;gap:1rem">
+        <div class="hamburger" onclick="document.getElementById('sidebar').classList.toggle('open')"><span></span><span></span><span></span></div>
+        <span style="font-size:.9rem;color:var(--muted)">💰 Wallet & Funds</span>
+      </div>
+      <div class="topbar-user">
+        <div class="topbar-avatar" id="avBtn">U</div>
+        <div class="user-dropdown" id="uDrop">
+          <div class="ud-name" id="udN">–</div>
+          <a href="/profile.html">👤 Profile</a>
+          <a href="#" onclick="clearAuth();location.href='/index.html'">🚪 Logout</a>
+        </div>
+      </div>
+    </header>
+    <div class="dash-content">
+      <div class="page-header"><h1>Wallet & Funds</h1><p>Add funds and view your transaction history.</p></div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;margin-bottom:1.5rem" class="grid-2">
+        <div class="stat-card"><div class="stat-icon green">💰</div><div><div class="stat-label">Current Balance</div><div class="stat-value text-green" id="curBal">–</div></div></div>
+        <div class="stat-card"><div class="stat-icon blue">📊</div><div><div class="stat-label">Total Deposited</div><div class="stat-value" id="totalDep">–</div></div></div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;align-items:start">
+        <!-- Add Funds -->
+        <div class="card">
+          <h3 class="font-syne mb-2" style="color:var(--white);font-size:1rem">💳 Add Funds</h3>
+          <p style="color:var(--muted);font-size:.85rem;margin-bottom:1.2rem">Choose your preferred payment method</p>
+
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:.7rem;margin-bottom:1.2rem">
+            <div class="method-card selected" id="mpesaMethod" onclick="selectMethod('mpesa')">
+              <span class="mc-icon">📱</span>
+              <div class="mc-name">M-Pesa</div>
+              <div class="mc-desc">STK Push · Instant</div>
+            </div>
+            <div class="method-card" id="manualMethod" onclick="selectMethod('manual')">
+              <span class="mc-icon">🏦</span>
+              <div class="mc-name">Paybill</div>
+              <div class="mc-desc">Manual · Reference</div>
+            </div>
+          </div>
+
+          <!-- M-Pesa STK Push -->
+          <div id="mpesaForm">
+            <div class="form-group">
+              <label class="form-label">M-Pesa Phone Number</label>
+              <input type="tel" class="form-control" id="mpesaPhone" placeholder="0712 345 678" value="">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Amount (KES)</label>
+              <input type="number" class="form-control" id="mpesaAmount" placeholder="500" min="10">
+              <div class="form-hint">Minimum KES 10</div>
+            </div>
+            <button class="btn btn-primary btn-full" id="mpesaBtn" onclick="sendSTK()">📱 Send M-Pesa Prompt</button>
+            <div id="mpesaStatus" style="display:none" class="alert alert-info mt-2">
+              <strong>⏳ Waiting for payment...</strong><br>
+              <span style="font-size:.8rem">Check your phone and enter your M-Pesa PIN. This page will update automatically.</span>
+            </div>
+          </div>
+
+          <!-- Manual Paybill -->
+          <div id="manualForm" style="display:none">
+            <div class="mpesa-steps">
+              <div class="mp-step"><span class="mp-num">1</span><span class="mp-text">Go to <strong>M-Pesa</strong> → <strong>Lipa na M-Pesa</strong> → <strong>Pay Bill</strong></span></div>
+              <div class="mp-step"><span class="mp-num">2</span><span class="mp-text">Business Number: <strong id="paybillNum">522522</strong></span></div>
+              <div class="mp-step"><span class="mp-num">3</span><span class="mp-text">Account Number: <strong id="accountRef">1289011060</strong></span></div>
+              <div class="mp-step"><span class="mp-num">4</span><span class="mp-text">Enter amount and confirm with <strong>M-Pesa PIN</strong></span></div>
+              <div class="mp-step"><span class="mp-num">✓</span><span class="mp-text" style="color:var(--green)">Your wallet will be credited within <strong>5 minutes</strong></span></div>
+            </div>
+            <div class="alert alert-warning mt-2" style="font-size:.8rem">
+              ⚠️ Use your exact Account Number above so we can identify your payment.
+            </div>
+          </div>
+        </div>
+
+        <!-- Transactions -->
+        <div class="card">
+          <h3 class="font-syne mb-2" style="color:var(--white);font-size:1rem">📜 Transaction History</h3>
+          <div id="txList"><div style="color:var(--muted);font-size:.85rem">Loading...</div></div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script src="/shared.js"></script>
+<script>
+const user = requireAuth(); if(!user) throw 0;
+document.getElementById('avBtn').textContent=user.name[0];
+document.getElementById('udN').textContent=user.name;
+document.getElementById('avBtn').onclick=()=>document.getElementById('uDrop').classList.toggle('show');
+document.addEventListener('click',e=>{if(!e.target.closest('.topbar-user'))document.getElementById('uDrop').classList.remove('show');});
+
+let pollInterval=null;
+
+async function init(){
+  try{
+    const me=await apiFetch('/auth/me');
+    document.getElementById('sideBalance').textContent=fmtKES(me.balance);
+    document.getElementById('curBal').textContent=fmtKES(me.balance);
+    // Account number is fixed: 1289011060
+    document.getElementById('mpesaPhone').value=me.phone||'';
+  }catch(e){}
+  try{
+    const {transactions}=await apiFetch('/wallet/transactions?limit=15');
+    const totalDep=transactions.filter(t=>t.type==='deposit'&&t.status==='completed').reduce((s,t)=>s+t.amount,0);
+    document.getElementById('totalDep').textContent=fmtKES(totalDep);
+    if(!transactions.length){
+      document.getElementById('txList').innerHTML='<div class="empty-state" style="padding:1.5rem"><span class="es-icon" style="font-size:2rem">📭</span><p style="font-size:.85rem">No transactions yet</p></div>';
+    } else {
+      document.getElementById('txList').innerHTML=transactions.map(t=>{
+        const isPos=t.amount>0||t.type==='deposit';
+        return `<div style="display:flex;justify-content:space-between;align-items:center;padding:.65rem 0;border-bottom:1px solid var(--border)">
+          <div><div style="font-size:.85rem;color:var(--white)">${t.description||t.type}</div><div style="font-size:.72rem;color:var(--muted)">${fmtDate(t.createdAt)}${t.mpesaCode?' · '+t.mpesaCode:''}</div></div>
+          <div style="text-align:right"><div style="font-weight:700;color:${isPos?'var(--green)':'var(--red)'}">${isPos?'+':''}${fmtKES(Math.abs(t.amount))}</div><div style="font-size:.72rem;color:var(--muted)">${t.status}</div></div>
+        </div>`;
+      }).join('');
+    }
+  }catch(e){}
+}
+
+function selectMethod(m){
+  document.querySelectorAll('.method-card').forEach(c=>c.classList.remove('selected'));
+  document.getElementById(m+'Method').classList.add('selected');
+  document.getElementById('mpesaForm').style.display=m==='mpesa'?'block':'none';
+  document.getElementById('manualForm').style.display=m==='manual'?'block':'none';
+}
+
+async function sendSTK(){
+  const phone=document.getElementById('mpesaPhone').value.trim();
+  const amount=parseFloat(document.getElementById('mpesaAmount').value);
+  if(!phone||!amount){toast('Enter phone and amount','error');return;}
+  const btn=document.getElementById('mpesaBtn');
+  btn.disabled=true; btn.textContent='Sending...';
+  try{
+    const data=await apiFetch('/mpesa/stk-push',{method:'POST',body:JSON.stringify({phone,amount})});
+    toast(data.message,'info');
+    document.getElementById('mpesaStatus').style.display='block';
+    // Poll for payment
+    pollInterval=setInterval(async()=>{
+      try{
+        const st=await apiFetch('/mpesa/status/'+data.checkoutId);
+        if(st.status==='completed'){
+          clearInterval(pollInterval);
+          toast('✅ Payment received! KES '+st.amount+' credited · Code: '+st.mpesaCode);
+          document.getElementById('mpesaStatus').innerHTML='<strong style="color:var(--green)">✅ Payment confirmed!</strong><br><span style="font-size:.8rem">KES '+st.amount+' has been added to your wallet.</span>';
+          setTimeout(init,500);
+        } else if(st.status==='failed'){
+          clearInterval(pollInterval);
+          toast('Payment failed or cancelled','error');
+          document.getElementById('mpesaStatus').style.display='none';
+          btn.disabled=false; btn.textContent='📱 Send M-Pesa Prompt';
+        }
+      }catch(e){}
+    },4000);
+    setTimeout(()=>{clearInterval(pollInterval);btn.disabled=false;btn.textContent='📱 Send M-Pesa Prompt';},120000);
+  }catch(e){toast(e.message,'error');btn.disabled=false;btn.textContent='📱 Send M-Pesa Prompt';}
+}
+
+init();
+</script>
+</body></html>
